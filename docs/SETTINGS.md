@@ -44,6 +44,12 @@ Open **content filters** from the main menu. All filter switches and lists have 
 - Hiding visible tag chips under UI settings does **not** disable full supplied-tag filtering.
 - **Why blocked?** helps identify the matching rule before you change anything. Starter lists remain empty and language/emoji restrictions remain off until chosen.
 
+## Moderation timeout commands
+
+With **Use API chat commands** enabled and a moderator account using the Helix route, `/timeout SomeChannel 5m` requests five minutes. You can use plain seconds (`30`) or one `s`, `m`, `h` or `d` suffix (`30s`, `5m`, `2h`, `1d`). Leaving out the duration uses ten minutes. Helix accepts 1 second through 14 days; malformed/out-of-range values show an error without submitting the timeout. `/ban` remains a separate permanent-ban command. These commands perform real moderation when you submit them; use them only in a channel you moderate.
+
+The GraphQL route, permissions and API selection are unchanged by this fix. Ordinary chat messages do not need a new setting.
+
 ## Backups: know what is in the file
 
 The inherited **Backup settings and data** action exports general preferences and the app database. It is not a complete backup of the encrypted saved-account vault or the separate global filter/proxy stores. Do not treat it as a one-step phone migration.

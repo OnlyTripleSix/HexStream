@@ -2448,12 +2448,17 @@ class ChatViewModel(
                         }.takeIf { !it.errors.isNullOrEmpty() }?.toString()
                     } else {
                         if (!helixHeaders[C.HEADER_TOKEN].isNullOrBlank()) {
+                            val durationSeconds = TimeoutDuration.helixSeconds(duration)
+                            if (durationSeconds == null) {
+                                onMessage(ChatMessage(systemMsg = applicationContext.getString(R.string.invalid_timeout_duration)))
+                                return
+                            }
                             val targetId = helixRepository.getUsers(
                                 networkLibrary = networkLibrary,
                                 headers = helixHeaders,
                                 logins = listOf(targetLogin)
                             ).data.firstOrNull()?.id
-                            helixRepository.banUser(networkLibrary, helixHeaders, channelId, accountId, targetId, duration ?: "600", reason)
+                            helixRepository.banUser(networkLibrary, helixHeaders, channelId, accountId, targetId, durationSeconds, reason)
                         } else null
                     }?.let {
                         onMessage(ChatMessage(systemMsg = it))

@@ -12,6 +12,8 @@ The starting source is Xtra **2.60.7**, upstream commit [`a3cbb0325f3330573a6738
 
 Beta.3 incorporates **crackededed’s Xtra 2.60.8 fixes**, through upstream commit [`96772030c7712581ad150c9b8b619c77a3527e50`](https://github.com/crackededed/Xtra/commit/96772030c7712581ad150c9b8b619c77a3527e50). The [upstream synchronization record](docs/upstream/SYNC.md) links each original commit and describes adaptations for HexStream.
 
+Beta.7 incorporates **crackededed's Xtra 2.60.9 Helix timeout fix** and **LizenzFass78851's German translation improvements**, through [`0444de816e28de1654979a5a2a663b3fc51cb6a6`](https://github.com/crackededed/Xtra/commit/0444de816e28de1654979a5a2a663b3fc51cb6a6). Their original commit links, authorship and HexStream's compatibility adjustments are preserved in the same synchronization record.
+
 Xtra provides the app architecture and much of the player, Twitch integration, chat, emote support, browsing, VOD/clip handling, downloads, saved content, themes and settings. HexStream’s changes focus on category pagination, global content controls, saved-account switching, global proxy presets, live-delay tuning, gestures, points/reward handling, reliability and branding.
 
 ## Filtering inspiration: Unwanted Twitch

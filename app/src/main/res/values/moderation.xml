@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="invalid_timeout_duration" translatable="false">Invalid timeout duration. Use seconds or s/m/h/d, for example 30, 30s, 5m, 1h or 1d. The range is 1 second to 14 days.</string>
+</resources>

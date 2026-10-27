@@ -4,7 +4,7 @@
 
 Get the APK from [the official HexStream releases](https://github.com/OnlyTripleSix/HexStream/releases). Check its SHA-256 against the accompanying checksum file if you verify downloads. Android may ask you to allow installation from the browser/file manager you use.
 
-The current package is `com.github.andreyasadchy.xtra.prototype`. The inherited namespace and package are retained for compatibility with existing HexStream installations; the launcher name is HexStream. The current release is **1.0.0-beta.6**, version code **140**. Do not uninstall an existing working installation merely to update it: a matching package/signature update preserves its app data.
+The current package is `com.github.andreyasadchy.xtra.prototype`. The inherited namespace and package are retained for compatibility with existing HexStream installations; the launcher name is HexStream. The current release is **1.0.0-beta.7**, version code **141**. Do not uninstall an existing working installation merely to update it: a matching package/signature update preserves its app data.
 
 The published APK uses the existing HexStream signing certificate. Its SHA-256 certificate fingerprint is:
 
@@ -18,7 +18,7 @@ An APK signed with your own key cannot replace that installation while preservin
 
 - JDK **21**.
 - Android SDK platform **37**, build tools **37.0.0**, platform tools for device tests.
-- The included Gradle **9.8.0** wrapper; Android Gradle Plugin **9.4.1**.
+- The included Gradle **9.8.2** wrapper; Android Gradle Plugin **9.4.1**.
 - Network access for Gradle dependencies on the first build.
 
 Versions are pinned in [`libs.versions.toml`](../gradle/libs.versions.toml). Use Android Studio’s SDK settings or set `ANDROID_HOME`; a machine-local `local.properties` can also supply `sdk.dir`. Do not commit that file.

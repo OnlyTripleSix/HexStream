@@ -1,5 +1,15 @@
 # Verification and known limits
 
+## Upstream fixes: 1.0.0-beta.7
+
+All **119 JVM tests across 21 suites passed**, with zero failures/errors/skips. Eight new tests cover Helix timeout argument conversion, plain seconds, missing-duration defaults, suffix case, malformed/out-of-range/overflow inputs, numeric JSON duration, preserved target/reason, and explicit bans without a duration. Existing category snapshot/deduplication, filter, account-action, proxy, low-delay, quality, rewards-request and chat-overlay suites passed with the updated dependencies.
+
+Android lint reported **zero errors and 20 reviewed warnings**: dependency update notices, the existing orientation lock, layout suggestions, compatibility resources/hooks and preference-edit suggestions. The optimized signed APK and both isolated QA/test APKs built locally with JDK 21, SDK 37 and Gradle 9.8.2. The release package/version, existing signing certificate, neutral defaults, compiled credits and exact source revision are checked during packaging; source/APK privacy scans and checksum verification accompany publication.
+
+German resource checks preserved all **555 resource identities** in the translated strings file, format arguments and the existing quantity-aware resources. Obsolete resources were not restored. Starter filter and player/overlay sources remain unchanged. The new invalid-duration explanation currently uses English, consistent with the other added help text.
+
+**No ADB device was connected for beta.7.** The device fixtures compiled but were not run; the beta.6 physical-device results below are historical. No personal app was installed or cleared, and no live moderation command, chat message, reward transaction or notification test was submitted. Timeout request coverage checks the shared payload builder used by all three transports, not a live Twitch moderation action. Playback/keyboard/gesture behavior with the updated dependencies still needs a device smoke check.
+
 ## Transparent chat: 1.0.0-beta.6
 
 All **111 JVM tests across 19 suites passed**, with zero failures/errors/skips. The geometry regressions now cover the full-height left/right chat column, viewport/density changes, invalid or unmeasured bounds and mode eligibility. Android lint reported **zero errors and 23 reviewed warnings**. The optimized APK built locally with the existing signing certificate.

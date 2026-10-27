@@ -20,9 +20,9 @@ The filtering workflow and compatible list format were inspired by **[Unwanted T
 
 ## Get HexStream
 
-Download the APK from [Releases](https://github.com/OnlyTripleSix/HexStream/releases). The current release is **1.0.0-beta.6**, built locally with Gradle and the Android SDK. Android 7.0 or newer is required. No GitHub Actions build is used.
+Download the APK from [Releases](https://github.com/OnlyTripleSix/HexStream/releases). The current release is **1.0.0-beta.7**, built locally with Gradle and the Android SDK. Android 7.0 or newer is required. No GitHub Actions build is used.
 
-Beta.5 adds movable, resizable fullscreen chat, adapted from [ThystTV by tzii and its contributors](https://github.com/tzii/ThystTV), with opacity and high-contrast controls. It retains the explained settings and Xtra 2.60.8 fixes. [Settings guide →](docs/SETTINGS.md) · [What changed →](CHANGELOG.md)
+Beta.7 adds Xtra 2.60.9's Helix timeout fix and German translation improvements. Fullscreen chat can sit transparently over the full-size game or beside it, on either side, with typing/replies/emotes. That work adapts [ThystTV by tzii and its contributors](https://github.com/tzii/ThystTV). The explained settings, stable category browsing and full supplied-tag rules stay intact. [Settings guide →](docs/SETTINGS.md) · [What changed →](CHANGELOG.md)
 
 Fresh installations start with **empty filter lists**. Language restrictions and emoji blocking are off; you choose the rules. Upgrading preserves existing saved rules, accounts and proxy settings. See [installation and builds](docs/BUILDING.md) for signing and package details.
 

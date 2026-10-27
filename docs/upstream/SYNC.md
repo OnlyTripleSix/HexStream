@@ -4,7 +4,20 @@ HexStream started from Xtra 2.60.7, commit [`a3cbb0325f3330573a6738f7d36a2c5b785
 
 ## Current integrated checkpoint
 
-HexStream **1.0.0-beta.6** retains all three upstream application changes through **Xtra 2.60.8**, commit [`96772030c7712581ad150c9b8b619c77a3527e50`](https://github.com/crackededed/Xtra/commit/96772030c7712581ad150c9b8b619c77a3527e50). Beta.4 improves settings explanations; beta.5 introduces the [credited ThystTV chat adaptation](THYST-CHAT.md) and beta.6 simplifies it to a frameless transparent overlay, without changing this Xtra checkpoint. HexStream keeps its own version, package and signing identity.
+HexStream **1.0.0-beta.7** incorporates application changes through **Xtra 2.60.9**, commit [`0444de816e28de1654979a5a2a663b3fc51cb6a6`](https://github.com/crackededed/Xtra/commit/0444de816e28de1654979a5a2a663b3fc51cb6a6). HexStream keeps its own version, package and signing identity, explained settings and [credited ThystTV chat adaptation](THYST-CHAT.md), with the frameless transparent overlay, side selection and inline composer introduced in beta.6.
+
+## Xtra 2.60.9 integration
+
+| Original upstream commit and author | Change | HexStream adaptation |
+| --- | --- | --- |
+| [`bce2c374624e1dd9ab192763a3fc09049db8c646`](https://github.com/crackededed/Xtra/commit/bce2c374624e1dd9ab192763a3fc09049db8c646), **LizenzFass78851**, October 26, 2026 | German translation improvements ([#1077](https://github.com/crackededed/Xtra/pull/1077)) | Update still-used strings and follower plurals. Keep HexStream's resource cleanup and quantity-aware points/raid resources; retain HexStream branding in the return-to-app instruction. Xtra's F-Droid store descriptions are not used by this distribution. |
+| [`0444de816e28de1654979a5a2a663b3fc51cb6a6`](https://github.com/crackededed/Xtra/commit/0444de816e28de1654979a5a2a663b3fc51cb6a6), **crackededed**, October 26, 2026 | Helix timeout duration conversion, dependency and wrapper updates | Convert `s`/`m`/`h`/`d` to numeric seconds. Preserve plain seconds and the missing-argument ten-minute default. Reject malformed, overflowing or out-of-range durations instead of submitting a different timeout or accidentally omitting the duration. Keep explicit bans separate. Retain API choice/order and account handling. |
+
+The accepted range follows [Twitch's Ban User reference](https://dev.twitch.tv/docs/api/reference/#ban-user): 1–1,209,600 seconds. The GraphQL command path is unchanged. Regression tests check numeric JSON payloads, target/reason preservation, explicit bans, both argument styles, case, bounds and overflow; they do not send a live moderation action.
+
+The upstream dependency changes are Conscrypt **2.8.0**, Kotlin **2.4.21**, OkHttp **5.5.1**, Paging **3.5.3**, serialization **1.12.0**, WebKit **1.18.0**, and Gradle wrapper **9.8.2**. Existing pagination, full supplied-tag rules, shared proxies, player/chat layout, gestures and rewards remain in place. No change to API fallback ordering or filter semantics is required.
+
+## Previously integrated Xtra 2.60.8 changes
 
 All three original changes below were authored by **crackededed** on October 14, 2026.
 

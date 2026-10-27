@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0-beta.7
+
+- Incorporate Xtra 2.60.9's Helix `/timeout` fix: `30s`, `5m`, `2h` and `1d` are sent as numeric seconds. Plain seconds still work and an omitted duration still means ten minutes.
+- Reject invalid, overflowing or out-of-range Helix timeout durations locally, keeping them separate from explicit permanent bans. Preserve the GraphQL route and account handling.
+- Bring in LizenzFass78851's German translation improvements while retaining HexStream branding, resource cleanup and quantity-aware strings.
+- Update the upstream dependencies and Gradle wrapper; add timeout parsing and moderation payload regressions alongside the existing pagination, filtering, proxy, low-delay and overlay suites.
+- Retain transparent/docked chat, left/right placement, inline input, global rules/proxies, neutral defaults and all project credits.
+
 ## 1.0.0-beta.6
 
 - Replace the floating chat window with a simple transparent fullscreen chat overlay: a full-height left/right chat column over the unchanged full-size game.
