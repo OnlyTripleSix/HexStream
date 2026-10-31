@@ -640,8 +640,7 @@ class MainActivity : AppCompatActivity() {
         else -> false
     }
     fun configureChannelMenus(menu: Menu) {
-        menu.findItem(R.id.hex_whispers)?.isVisible = prefs().getBoolean("hex_whispers", false)
-        menu.findItem(R.id.hex_mod_tools)?.isVisible = prefs().getBoolean("hex_moderator_tools", true)
+        ChannelToolsMenus.configure(menu, prefs())
     }
     private fun installPrototypeMenu() {
         if (intent.getBooleanExtra("prototype_add_account", false)) {
@@ -688,6 +687,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        ChannelToolsMenus.refresh(binding.root, prefs())
         restorePlayerFragment()
     }
 

@@ -1,5 +1,9 @@
 # Verification and known limits
 
+## Menu refresh: 1.0.0-beta.8.1 test candidate
+
+All **146 JVM tests /23 suites** and **22 account-free phone tests** passed; lint reports zero errors. The new device regression changes both visibility preferences on the same nested toolbar and verifies that its view and menu instances remain in place. Returning to the app refreshes these entries through `MainActivity.onResume`, retaining the existing browsing/player fragments. No live account action was submitted.
+
 ## Channel tools: 1.0.0-beta.8 test candidate
 
 The local candidate's complete **146 JVM tests across 23 suites passed**, with zero failures/errors/skips. Its 27 new tests cover native request payloads, moderator/sender identity, stale account rejection before and after a request, invalid timeout/chat/message values, individual chat-mode patches, selected-message versus whole-chat deletion, permitted-channel clip creation, editor/reconnect host validation, whisper/AutoMod subscriptions, both AutoMod message shapes, unban query encoding, private header/response error handling, non-replayable write bodies and an actual loopback HTTP 503/Retry-After regression, and partial notification-source failure/cancellation/deduplication. The previous pagination, full-tag, proxy, low-delay, rewards and overlay suites remain included.

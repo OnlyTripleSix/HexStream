@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0-beta.8.1 (test candidate)
+
+- Refresh the existing browsing toolbar when returning from Settings so enabling Whispers immediately reveals its menu. Apply the same behavior to the moderator-tools toggle.
+- Keep the existing browsing fragments, category snapshot and player session; no restart or account reset is needed.
+- Add an isolated device regression for toggling both menu entries on the same nested toolbar and menu instances.
+
 ## 1.0.0-beta.8 (test candidate)
 
 - Make channel alerts independent from following, retain an explicitly saved bell after unfollowing, and keep successful notification sources when another lookup fails.

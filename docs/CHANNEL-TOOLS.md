@@ -23,7 +23,7 @@ A failed lookup for followed channels no longer discards successful checks for i
 
 ## Whispers
 
-Enable **Settings → Chat → Whispers**. This shows Whispers in the browsing overflow menu and on a selected chat message. Turn it off to hide the entry points and close its receiving connection. The existing chat `/w` command remains available independently.
+Enable **Settings → Chat → Whispers**, then return to the browsing screen and open its **top-right ⋮ menu → Whispers**. The entry updates immediately after leaving Settings. This shows Whispers in the browsing overflow menu and on a selected chat message. Turn it off to hide the entry points and close its receiving connection. The existing chat `/w` command remains available independently.
 
 Use **New conversation** to enter a Twitch username, or choose Whispers on a chat message. Type a message and confirm Send. An accepted submission is not a delivery receipt; Twitch can enforce account verification, recipient privacy settings and other restrictions. There is no automatic resend after an uncertain connection failure.
 
