@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0-beta.8.2 (test candidate)
+
+- Detect the active account's moderator/broadcaster role before showing live-player or chat-message moderation controls.
+- Remove free-form channel entry. The dashboard lists channels returned by Twitch and the account's own channel; context tools stay bound to the stream that opened them.
+- Verify role again before every native moderation write, block unverified/revoked/other-channel access, and keep AutoMod events bound to the selected broadcaster.
+- Clarify that the optional moderator setting controls visibility. Retain the immediate Whispers menu refresh.
+
 ## 1.0.0-beta.8.1 (test candidate)
 
 - Refresh the existing browsing toolbar when returning from Settings so enabling Whispers immediately reveals its menu. Apply the same behavior to the moderator-tools toggle.

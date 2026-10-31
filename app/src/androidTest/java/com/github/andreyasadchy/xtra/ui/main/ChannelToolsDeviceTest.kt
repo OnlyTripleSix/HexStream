@@ -34,8 +34,18 @@ class ChannelToolsDeviceTest {
         val activity = instrumentation.startActivitySync(Intent(context, ModeratorActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         try { instrumentation.runOnMainSync {
             val text = text(activity.window.decorView)
-            assertTrue(text.contains("Channel username")); assertTrue(text.contains("Load channels I moderate"))
+            assertFalse(text.contains("Channel username")); assertTrue(text.contains("Load channels I moderate"))
         } } finally { instrumentation.runOnMainSync { activity.finish() }; context.prefs().edit().putBoolean("hex_moderator_tools", before).commit() }
+    }
+    @Test fun unverifiedChannelContextHasNoActionsOrEditableChannelSelector() {
+        val context = context()
+        val activity = instrumentation.startActivitySync(Intent(context, ModeratorActivity::class.java).putExtra("channel_id", "123").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        try { instrumentation.runOnMainSync {
+            val values = text(activity.window.decorView)
+            assertFalse(values.contains("Channel username"))
+            assertFalse(values.contains("People • ban, timeout, unban, warn"))
+            assertFalse(values.contains("Switch channel"))
+        } } finally { instrumentation.runOnMainSync { activity.finish() } }
     }
     @Test fun clipEntryExplainsChannelRestrictionsAndNeedsExplicitRequest() {
         val context = context()

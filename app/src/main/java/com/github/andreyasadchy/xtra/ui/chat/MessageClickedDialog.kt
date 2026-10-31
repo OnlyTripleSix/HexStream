@@ -42,6 +42,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.mlkit.nl.translate.TranslateLanguage
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import com.github.andreyasadchy.xtra.util.ChannelActionSession
 import java.util.Locale
 import kotlin.time.Instant
 
@@ -229,6 +231,8 @@ class MessageClickedDialog : BottomSheetDialogFragment(), IntegrityDialog.Listen
         }
     }
 
+    private var moderatorLookupJob: Job? = null
+
     private fun updateButtons(chatMessage: ChatMessage) {
         with(binding) {
             whisperUser.isVisible = requireContext().prefs().getBoolean("hex_whispers", false) && !chatMessage.userLogin.isNullOrBlank()
@@ -236,7 +240,14 @@ class MessageClickedDialog : BottomSheetDialogFragment(), IntegrityDialog.Listen
                 startActivity(android.content.Intent(requireContext(), com.github.andreyasadchy.xtra.ui.main.WhispersActivity::class.java).putExtra("target_login", chatMessage.userLogin))
                 dismiss()
             }
-            moderateUser.isVisible = requireContext().prefs().getBoolean("hex_moderator_tools", true) && !requireArguments().getString(KEY_CHANNEL_ID).isNullOrBlank() && !chatMessage.userLogin.isNullOrBlank()
+            moderatorLookupJob?.cancel()
+            moderateUser.isVisible = false
+            val channelId = requireArguments().getString(KEY_CHANNEL_ID)
+            if (requireContext().prefs().getBoolean("hex_moderator_tools", true) && !chatMessage.userLogin.isNullOrBlank()) {
+                moderatorLookupJob = viewLifecycleOwner.lifecycleScope.launch {
+                    moderateUser.isVisible = ChannelActionSession.canModerate(requireContext(), channelId)
+                }
+            }
             moderateUser.setOnClickListener {
                 startActivity(android.content.Intent(requireContext(), com.github.andreyasadchy.xtra.ui.main.ModeratorActivity::class.java)
                     .putExtra("channel_id", requireArguments().getString(KEY_CHANNEL_ID)).putExtra("target_login", chatMessage.userLogin).putExtra("message_id", chatMessage.id))

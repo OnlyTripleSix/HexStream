@@ -7,6 +7,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.edit
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import com.github.andreyasadchy.xtra.util.ChannelActionSession
 import androidx.media3.common.Tracks
 import com.github.andreyasadchy.xtra.R
 import com.github.andreyasadchy.xtra.databinding.PlayerSettingsBinding
@@ -76,7 +79,12 @@ class PlayerSettingsDialog : BottomSheetDialogFragment() {
             if (type == BasePlaybackService.STREAM) {
                 menuCreateClip.visibility = View.VISIBLE
                 menuCreateClip.setOnClickListener { (parentFragment as? PlayerFragment)?.openChannelAction(false); dismiss() }
-                menuModTools.isVisible = requireContext().prefs().getBoolean("hex_moderator_tools", true)
+                menuModTools.isVisible = false
+                val channelId = (parentFragment as? PlayerFragment)?.channelActionId()
+                if (requireContext().prefs().getBoolean("hex_moderator_tools", true)) viewLifecycleOwner.lifecycleScope.launch {
+                    val allowed = ChannelActionSession.canModerate(requireContext(), channelId)
+                    menuModTools.isVisible = allowed && channelId == (parentFragment as? PlayerFragment)?.channelActionId()
+                }
                 menuModTools.setOnClickListener { (parentFragment as? PlayerFragment)?.openChannelAction(true); dismiss() }
                 if (requireContext().prefs().getBoolean(C.PLAYER_MENU_VIEWER_LIST, true)) {
                     menuViewerList.visibility = View.VISIBLE

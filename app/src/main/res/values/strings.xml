@@ -589,7 +589,8 @@
     <string name="hex_whispers_title" translatable="false">Whispers</string>
     <string name="hex_whispers_help" translatable="false">Show Whispers in the menu and receive new messages for the active account while HexStream is open. Local history is encrypted and separate for each account. Twitch cannot supply old or missed messages. Example: enable this to message a friend while browsing; turn it off to remove the feature and connection.</string>
     <string name="hex_mod_title" translatable="false">Moderator tools</string>
-    <string name="hex_mod_help" translatable="false">Show moderator tools in menus and chat-message actions. Includes bans, timeouts, warnings, chat modes, AutoMod and unban requests; Twitch Mod View provides polls, predictions and remaining tools. Requires the right channel role and Twitch API login permissions. Example: tap a chat message to moderate its sender, or choose a channel from the main menu.</string>
+    <string name="hex_mod_visibility_title" translatable="false">Show detected moderator controls</string>
+    <string name="hex_mod_help" translatable="false">Show moderator controls when Twitch verifies that your active account moderates the current channel or owns it. The setting controls visibility; channel roles determine access. Actions stay tied to that channel and permissions are checked again before submitting. Requires Twitch API login permissions. Example: open a stream you moderate and use its player menu or tap a chat message.</string>
     <string name="hex_create_clip" translatable="false">Create a clip</string>
     <string name="hex_moderate_message" translatable="false">Moderate user / message</string>
 </resources>

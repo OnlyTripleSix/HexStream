@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.*
 
 class ModeratorActivity : ChannelActionActivity() {
+    private val contextBound get() = !intent.getStringExtra("channel_id").isNullOrBlank()
     private var channelId = ""
     private var channelLogin = ""
     private var queueJob: Job? = null
@@ -18,9 +19,9 @@ class ModeratorActivity : ChannelActionActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (!prefs().getBoolean("hex_moderator_tools", true)) { clear("Moderator tools are hidden in Settings → Chat"); return }
-        channelId = savedInstanceState?.getString("channel_id") ?: intent.getStringExtra("channel_id").orEmpty()
+        channelId = intent.getStringExtra("channel_id") ?: savedInstanceState?.getString("channel_id").orEmpty()
         channelLogin = savedInstanceState?.getString("channel_login") ?: intent.getStringExtra("channel_login").orEmpty()
-        if (channelId.isNotBlank()) home() else channels()
+        if (channelId.isNotBlank()) verifyAndOpen(channelId) else channels()
     }
     override fun onSaveInstanceState(outState: Bundle) { outState.putString("channel_id", channelId); outState.putString("channel_login", channelLogin); super.onSaveInstanceState(outState) }
     override fun onStop() {
@@ -29,16 +30,20 @@ class ModeratorActivity : ChannelActionActivity() {
         super.onStop()
     }
     private fun channels() {
-        queueJob?.cancel(); loadedPages.clear(); loadedItems.clear(); clear("Your moderator channels")
-        label("Choose a channel. Permissions belong to the active account and are checked by Twitch for every action.")
-        val login = input("Channel username")
-        button("Open channel tools") { task { session -> val user = session.user(login.text.toString().trim()); channelId = user.text("id"); channelLogin = user.text("login"); home() } }
-        button("Open Twitch Mod View in browser") {
-            val name = login.text.toString().trim()
-            if (name.matches(Regex("[A-Za-z0-9_]{1,25}"))) openTwitch("https://www.twitch.tv/moderator/$name")
-            else notice.text = getString(R.string.hex_tools_channel_hint)
-        }
+        queueJob?.cancel(); channelId = ""; channelLogin = ""; loadedPages.clear(); loadedItems.clear(); clear("Your moderator channels")
+        label("Twitch identifies the channels your active account moderates. Choose from that verified list, or open your own channel. Channel tools opened from a stream stay tied to that stream.")
+        api?.let { session -> button("My own channel") { verifyAndOpen(session.userId) } }
         button("Load channels I moderate") { loadChannels() }
+    }
+    private fun verifyAndOpen(targetId: String) {
+        clear("Checking channel permissions…")
+        task { session ->
+            session.requireModerator(targetId)
+            val channel = session.userById(targetId)
+            check(channel.text("id") == targetId)
+            channelId = targetId; channelLogin = channel.text("login")
+            home()
+        }
     }
     private val loadedPages = mutableSetOf<String>()
     private val loadedItems = mutableSetOf<String>()
@@ -47,10 +52,10 @@ class ModeratorActivity : ChannelActionActivity() {
             if ("channels:$after" in loadedPages) return@task
             val result = session.moderated(after)
             loadedPages += "channels:$after"
-            if (after == null && result.rows().isEmpty()) label("No moderator channels returned. You can enter a channel above, including your own.")
+            if (after == null && result.rows().isEmpty()) label("Twitch returned no channels you moderate. Your own channel is available above.")
             result.rows().forEach { row -> val item = row.jsonObject
                 if (loadedItems.add(item.text("broadcaster_id"))) button(item.text("broadcaster_name")) {
-                    channelId = item.text("broadcaster_id"); channelLogin = item.text("broadcaster_login"); home()
+                    verifyAndOpen(item.text("broadcaster_id"))
                 }
             }
             result.cursor()?.takeUnless { "channels:$it" in loadedPages }?.let { next -> button("Load more channels") { loadChannels(next) } }
@@ -71,11 +76,10 @@ class ModeratorActivity : ChannelActionActivity() {
         label("Polls, predictions and the complete moderator workspace open Twitch in your browser. Twitch reserves some API actions for broadcasters. The browser uses its own Twitch login: check the account shown there.")
         button("Open Twitch Mod View • polls, predictions and more") { browserModView() }
         button("Polls • open Twitch poll manager") { browserModView(true) }
-        button("Switch channel") { channels() }
+        if (!contextBound) button("Your moderated channels") { channels() }
     }
     private fun browserModView(poll: Boolean = false) {
-        if (channelLogin.matches(Regex("[A-Za-z0-9_]{1,25}"))) openBrowserPanel(poll)
-        else task { session -> channelLogin = session.userById(channelId).text("login"); openBrowserPanel(poll) }
+        task { session -> session.requireModerator(channelId); openBrowserPanel(poll) }
     }
     private fun openBrowserPanel(poll: Boolean) {
         require(channelLogin.matches(Regex("[A-Za-z0-9_]{1,25}"))) { "Open a channel by username first." }
@@ -148,7 +152,8 @@ class ModeratorActivity : ChannelActionActivity() {
             queueJob?.cancel(); held.clear(); renderHeld(queue)
             queueJob = lifecycleScope.launch {
                 val condition = buildJsonObject { put("broadcaster_user_id", channelId); put("moderator_user_id", session.userId) }
-                try { TwitchEvents.run(session, mapOf("automod.message.hold" to condition, "automod.message.update" to condition), { queueStatus.text = it }) { type, event ->
+                try { session.requireModerator(channelId); TwitchEvents.run(session, mapOf("automod.message.hold" to condition, "automod.message.update" to condition), { queueStatus.text = it }) { type, event ->
+                    if (event.text("broadcaster_user_id") != channelId) return@run
                     val id = event.text("message_id")
                     if (type == "automod.message.hold") { held[id] = event; while (held.size > 100) held.remove(held.keys.first()) } else held.remove(id)
                     renderHeld(queue)
@@ -182,7 +187,7 @@ class ModeratorActivity : ChannelActionActivity() {
             card.addView(android.widget.TextView(this).apply { this.text = getString(R.string.hex_tools_held_message, event.text("user_name"), text); setPadding(dp(4), dp(12), dp(4), dp(8)) })
             listOf(true, false).forEach { allow -> card.addView(android.widget.Button(this).apply {
                 this.text = if (allow) "Allow message" else "Deny message"; isAllCaps = false
-                setOnClickListener { if (!busy) confirm(if (allow) "Allow this message?" else "Deny this message?", text) { task(true) { it.automodMessage(id, allow); held.remove(id); renderHeld(queue) } } }
+                setOnClickListener { if (!busy) confirm(if (allow) "Allow this message?" else "Deny this message?", text) { task(true) { it.automodMessage(channelId, id, allow); held.remove(id); renderHeld(queue) } } }
             }) }
         }
     }

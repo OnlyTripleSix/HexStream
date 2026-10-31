@@ -5,7 +5,6 @@
     <string name="hex_tools_reconnect" translatable="false">Reconnect this account after choosing Both or Helix in Settings → API token settings → Get token for selected APIs.</string>
     <string name="hex_tools_uncertain" translatable="false">Could not complete the request. Check Twitch before repeating an action; it may have succeeded.</string>
     <string name="hex_tools_no_browser" translatable="false">No browser is available to open Twitch.</string>
-    <string name="hex_tools_channel_hint" translatable="false">Enter a Twitch channel username, without @ or a URL.</string>
     <string name="hex_tools_queue_failed" translatable="false">Queue connection failed. Reopen this page to retry.</string>
     <string name="hex_tools_queue_paused" translatable="false">Queue paused. Tap Listen for new held messages to reconnect.</string>
     <string name="hex_tools_held_message" translatable="false">%1$s: %2$s</string>

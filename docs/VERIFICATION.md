@@ -1,5 +1,11 @@
 # Verification and known limits
 
+## Channel-specific moderation: 1.0.0-beta.8.2 test candidate
+
+All **159 JVM tests /24 suites** and **23 account-free phone tests** passed. The new role regressions cover owner identity, exact broadcaster IDs, later/empty membership pages, repeated/bounded cursors, cancellation, absent and revoked roles, roles in another channel, account changes during verification, and a fresh check before each native write. Existing clip and whisper tests verify that these viewer features need no moderator lookup. The device fixture confirms an unverified channel exposes neither moderation actions nor an editable channel selector. The prior settings-menu, account, filters, proxy and overlay checks remain included.
+
+No real moderation action, whisper or clip was submitted. Positive live moderator access still needs a permitted account with the new lookup scope. Whispers remains a limited foreground/local-history preview, without older inbox history, offline backfill or background notifications. The previous beta.8.1 menu fix is retained.
+
 ## Menu refresh: 1.0.0-beta.8.1 test candidate
 
 All **146 JVM tests /23 suites** and **22 account-free phone tests** passed; lint reports zero errors. The new device regression changes both visibility preferences on the same nested toolbar and verifies that its view and menu instances remain in place. Returning to the app refreshes these entries through `MainActivity.onResume`, retaining the existing browsing/player fragments. No live account action was submitted.

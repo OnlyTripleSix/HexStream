@@ -22,8 +22,12 @@ class ChannelActionsApi(client: OkHttpClient, val userId: String, private val he
     }.build()
     internal var callFactory: Call.Factory = this.client
 
-    private suspend fun request(path: String, method: String = "GET", query: Map<String, String> = emptyMap(), body: JsonObject? = null): JsonObject {
+    private suspend fun request(path: String, method: String = "GET", query: Map<String, String> = emptyMap(), body: JsonObject? = null, moderatorChannel: String? = null): JsonObject {
         checkCurrent()
+        if (method != "GET" && (path.startsWith("moderation/") || path in setOf("chat/settings", "chat/announcements"))) {
+            requireModerator(moderatorChannel ?: query["broadcaster_id"].orEmpty())
+            checkCurrent()
+        }
         val url = "https://api.twitch.tv/helix/$path".toHttpUrl().newBuilder().apply {
             query.forEach { (key, value) -> addQueryParameter(key, value) }
         }.build()
@@ -66,6 +70,18 @@ class ChannelActionsApi(client: OkHttpClient, val userId: String, private val he
     suspend fun moderated(after: String? = null) = request("moderation/channels", query = buildMap {
         put("user_id", userId); put("first", "100"); after?.let { put("after", it) }
     })
+    suspend fun canModerate(channelId: String): Boolean {
+        checkCurrent()
+        val result = ModeratorPermission.check(userId, channelId) { after ->
+            val result = moderated(after)
+            ModeratorPermission.Page(result.rows().mapNotNull { (it as? JsonObject)?.text("broadcaster_id")?.takeIf { id -> id.isNotBlank() } }.toSet(), result.cursor())
+        }
+        checkCurrent()
+        return result
+    }
+    suspend fun requireModerator(channelId: String) {
+        if (!canModerate(channelId)) throw ActionFailure("Twitch does not confirm that your active account moderates this channel. No action was submitted.")
+    }
     suspend fun userById(id: String): JsonObject = request("users", query = mapOf("id" to id)).rows().firstOrNull()?.jsonObject
         ?: throw ActionFailure("The channel was not found on Twitch.")
     private fun channel(id: String) = mapOf("broadcaster_id" to id, "moderator_id" to userId)
@@ -103,7 +119,7 @@ class ChannelActionsApi(client: OkHttpClient, val userId: String, private val he
         require(level in 0..4)
         return request("moderation/automod/settings", "PUT", channel(channelId), buildJsonObject { put("overall_level", level) })
     }
-    suspend fun automodMessage(messageId: String, allow: Boolean) = request("moderation/automod/message", "POST", body = buildJsonObject {
+    suspend fun automodMessage(channelId: String, messageId: String, allow: Boolean) = request("moderation/automod/message", "POST", moderatorChannel = channelId, body = buildJsonObject {
         put("user_id", userId); put("msg_id", messageId); put("action", if (allow) "ALLOW" else "DENY")
     })
     suspend fun terms(channelId: String, after: String? = null) = request("moderation/blocked_terms", query = channel(channelId) + buildMap {

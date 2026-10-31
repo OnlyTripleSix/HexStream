@@ -1712,6 +1712,8 @@ abstract class PlayerFragment : BaseNetworkFragment(), RadioButtonDialogFragment
         )
     }
 
+    fun channelActionId(): String? = playbackService?.takeIf { it.type == BasePlaybackService.STREAM }?.channelId
+
     fun openChannelAction(moderator: Boolean) {
         val service = playbackService ?: return
         if (service.type != BasePlaybackService.STREAM || service.channelId.isNullOrBlank()) return

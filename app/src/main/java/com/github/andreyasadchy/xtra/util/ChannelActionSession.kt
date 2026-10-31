@@ -4,8 +4,15 @@ import android.content.Context
 import com.github.andreyasadchy.xtra.XtraApp
 import com.github.andreyasadchy.xtra.repository.ActionFailure
 import com.github.andreyasadchy.xtra.repository.ChannelActionsApi
+import kotlinx.coroutines.CancellationException
 
 object ChannelActionSession {
+    suspend fun canModerate(context: Context, channelId: String?): Boolean {
+        if (channelId.isNullOrBlank()) return false
+        return try { open(context).canModerate(channelId) }
+        catch (e: CancellationException) { throw e }
+        catch (_: Exception) { false }
+    }
     fun open(context: Context): ChannelActionsApi {
         val app = context.applicationContext
         val id = app.tokenPrefs().getString(C.USER_ID, null)

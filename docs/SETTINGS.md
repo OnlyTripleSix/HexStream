@@ -62,4 +62,4 @@ New help text currently falls back to English when a translation is unavailable.
 
 ## Channel tools in the beta.8 candidate
 
-Chat settings include **Whispers** (off initially) and **Moderator tools** (shown initially). Each has inline help and an example. Whisper receiving runs only while the app is visible and only for the active account; turning it off removes its menu and connection. Moderator tools can be hidden independently. [Login permissions, browser account boundaries and instructions](CHANNEL-TOOLS.md).
+Chat settings include **Whispers** (off initially) and **Show detected moderator controls** (shown initially when a channel role is verified). Each has inline help and an example. Whisper receiving runs only while the app is visible and only for the active account; turning it off removes its menu and connection. Moderator tools can be hidden independently. [Login permissions, browser account boundaries and instructions](CHANNEL-TOOLS.md).

@@ -16,14 +16,51 @@ import kotlin.concurrent.thread
 class ChannelActionsApiTest {
     private class Fixture(var active: Boolean = true, var code: Int = 200, var response: String = "{}", headers: Map<String, String> = mapOf("Client-Id" to "fixture", "Authorization" to "Bearer fixture")) {
         val requests = mutableListOf<Request>()
+        val roleRequests = mutableListOf<Request>()
+        var allowedChannels = setOf("22")
+        var onRoleRequest: () -> Unit = {}
         var onRequest: () -> Unit = {}
         val api = ChannelActionsApi(OkHttpClient(), "11", headers) { active }.apply {
             callFactory = OkHttpClient.Builder().addInterceptor { chain ->
-                requests += chain.request(); onRequest()
-                Response.Builder().request(chain.request()).protocol(Protocol.HTTP_1_1).code(code).message("Fixture").body(response.toResponseBody()).build()
+                val roleLookup = chain.request().url.encodedPath == "/helix/moderation/channels"
+                if (roleLookup) { roleRequests += chain.request(); onRoleRequest() } else { requests += chain.request(); onRequest() }
+                val payload = if (roleLookup) buildJsonObject { putJsonArray("data") { allowedChannels.forEach { id -> add(buildJsonObject { put("broadcaster_id", id) }) } } }.toString() else response
+                Response.Builder().request(chain.request()).protocol(Protocol.HTTP_1_1).code(if (roleLookup) 200 else code).message("Fixture").body(payload.toResponseBody()).build()
             }.build()
         }
         fun body() = Json.parseToJsonElement(Buffer().also { requests.last().body!!.writeTo(it) }.readUtf8()).jsonObject
+    }
+    @Test fun nonModeratorsCannotSubmitAnyNativeModerationWrite() {
+        val f = Fixture(); f.allowedChannels = emptySet()
+        listOf<suspend () -> Unit>(
+            { f.api.warn("22", "33", "Reason") },
+            { f.api.deleteMessages("22", "message") },
+            { f.api.chatSetting("22", "emote_mode", true) },
+            { f.api.automodMessage("22", "held", true) },
+        ).forEach { action -> assertThrows(ActionFailure::class.java) { runBlocking { action() } } }
+        assertTrue(f.requests.isEmpty()); assertEquals(4, f.roleRequests.size)
+    }
+    @Test fun revokedModeratorRoleIsRecheckedBeforeEveryWrite() = runBlocking {
+        val f = Fixture(); f.api.warn("22", "33", "Reason")
+        f.allowedChannels = emptySet()
+        assertThrows(ActionFailure::class.java) { runBlocking { f.api.warn("22", "33", "Reason") } }
+        assertEquals(1, f.requests.size); assertEquals(2, f.roleRequests.size)
+    }
+    @Test fun permissionInAnotherChannelDoesNotAllowTheRequestedChannel() {
+        val f = Fixture()
+        assertThrows(ActionFailure::class.java) { runBlocking { f.api.ban("44", "33", "Reason") } }
+        assertTrue(f.requests.isEmpty())
+        assertEquals("11", f.roleRequests.single().url.queryParameter("user_id"))
+    }
+    @Test fun accountChangeDuringRoleLookupNeverSubmitsTheMutation() {
+        val f = Fixture(); f.onRoleRequest = { f.active = false }
+        assertThrows(ActionFailure::class.java) { runBlocking { f.api.unban("22", "33") } }
+        assertTrue(f.requests.isEmpty()); assertEquals(1, f.roleRequests.size)
+    }
+    @Test fun broadcasterCanUseOwnChannelWithoutAModeratorListLookup() = runBlocking {
+        val f = Fixture(); f.allowedChannels = emptySet()
+        f.api.warn("11", "33", "Reason")
+        assertEquals(1, f.requests.size); assertTrue(f.roleRequests.isEmpty())
     }
     @Test fun permanentBanOmitsDurationAndUsesActiveModerator() = runBlocking {
         val f = Fixture(); f.api.ban("22", "33", "Reason")
@@ -118,7 +155,7 @@ class ChannelActionsApiTest {
     @Test fun clipCreationWorksForAnyRequestedChannelWithoutFollowOrModRequest() = runBlocking {
         val f = Fixture(response = """{"data":[{"id":"clip","edit_url":"https://clips.twitch.tv/Example/edit"}]}""")
         val clip = f.api.createClip("22")
-        assertEquals("clip", clip.text("id")); assertEquals(1, f.requests.size)
+        assertEquals("clip", clip.text("id")); assertEquals(1, f.requests.size); assertTrue(f.roleRequests.isEmpty())
         assertEquals("/helix/clips", f.requests.single().url.encodedPath)
         assertEquals("22", f.requests.single().url.queryParameter("broadcaster_id"))
     }
@@ -129,7 +166,7 @@ class ChannelActionsApiTest {
     @Test fun whisperUsesActiveSenderAndPreservesText() = runBlocking {
         val f = Fixture(code = 204, response = "")
         f.api.whisper("33", "Hello \"friend\"\n👋")
-        assertEquals("11", f.requests.single().url.queryParameter("from_user_id"))
+        assertEquals("11", f.requests.single().url.queryParameter("from_user_id")); assertTrue(f.roleRequests.isEmpty())
         assertEquals("33", f.requests.single().url.queryParameter("to_user_id"))
         assertEquals("Hello \"friend\"\n👋", f.body().text("message"))
     }
@@ -155,7 +192,7 @@ class ChannelActionsApiTest {
         assertTrue(f.requests.isEmpty())
     }
     @Test fun automodDecisionUsesActiveModeratorAndExpectedAction() = runBlocking {
-        val f = Fixture(); f.api.automodMessage("held-message", false)
+        val f = Fixture(); f.api.automodMessage("22", "held-message", false)
         assertEquals("11", f.body().text("user_id")); assertEquals("held-message", f.body().text("msg_id")); assertEquals("DENY", f.body().text("action"))
     }
     @Test fun automodQueueDisplaysBothDocumentedMessageShapes() {
@@ -186,6 +223,6 @@ class ChannelActionsApiTest {
         assertEquals("approved", f.requests.last().url.queryParameter("status"))
         assertEquals("Approved & reviewed", f.requests.last().url.queryParameter("resolution_text"))
         f.api.moderated("next+cursor")
-        assertEquals("next+cursor", f.requests.last().url.queryParameter("after"))
+        assertEquals("next+cursor", f.roleRequests.last().url.queryParameter("after"))
     }
 }

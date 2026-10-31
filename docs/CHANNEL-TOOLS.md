@@ -1,6 +1,6 @@
 # Channel alerts, whispers, moderation and clips
 
-These features are included in the **beta.8 test candidate**. The last published beta remains available while the candidate receives live-account checks.
+These features are included in the **beta.8.2 test candidate**. The last published beta remains available while the candidate receives live-account checks.
 
 ## Get connected
 
@@ -23,6 +23,8 @@ A failed lookup for followed channels no longer discards successful checks for i
 
 ## Whispers
 
+**Limited inbox preview:** foreground receiving and local history only. Older conversations, offline backfill and background whisper notifications are not implemented.
+
 Enable **Settings → Chat → Whispers**, then return to the browsing screen and open its **top-right ⋮ menu → Whispers**. The entry updates immediately after leaving Settings. This shows Whispers in the browsing overflow menu and on a selected chat message. Turn it off to hide the entry points and close its receiving connection. The existing chat `/w` command remains available independently.
 
 Use **New conversation** to enter a Twitch username, or choose Whispers on a chat message. Type a message and confirm Send. An accepted submission is not a delivery receipt; Twitch can enforce account verification, recipient privacy settings and other restrictions. There is no automatic resend after an uncertain connection failure.
@@ -35,7 +37,9 @@ Twitch's public interface provides sending and incoming EventSub events, rather 
 
 ## Moderator tools
 
-Open **Moderator tools** in the browsing menu. Load the channels you moderate, or enter a channel username. From a live stream, use the player menu; on a chat message, choose **Moderate user / message** to prefill its sender and make deleting that selected message available. Hide these entries using **Settings → Chat → Moderator tools** if you do not need them.
+The player and chat-message menus automatically check whether your active account moderates the current channel or owns it. Verified accounts see **Moderator tools** in the live-player menu and **Moderate user / message** on a chat message. Those screens stay bound to that broadcaster; the channel is not editable.
+
+The browsing menu's **Moderator tools** dashboard lists channels returned by Twitch and your own channel. Free-form channel entry is removed. Each selected channel is verified again before its controls open. **Settings → Chat → Show detected moderator controls** optionally hides this UI; it grants no channel role. Missing permissions, an unavailable role lookup or a removed role prevent native actions. Reconnect the active account to grant the moderator-channel lookup permission if needed.
 
 | Native panel | Available actions |
 | --- | --- |
@@ -45,7 +49,7 @@ Open **Moderator tools** in the browsing menu. Load the channels you moderate, o
 | Unban requests | Load pending requests and approve/deny with an optional resolution note. |
 | Shield mode | Activate or deactivate the broadcaster's configured Shield settings. |
 
-Every mutation requires confirmation. Timeouts are restricted to 1 second–14 days, warnings require a reason, and chat settings are patched one mode at a time. A failed or uncertain request is not silently repeated. Permissions, message age, queue races and channel restrictions remain Twitch's authority; an action accepted by the request fixture is not proof it will succeed for every real account.
+Every native moderation write verifies the active account's role again immediately before submission, even if the controls were previously visible. Another channel's role does not grant access. AutoMod events from a different broadcaster are ignored. Every mutation requires confirmation. Timeouts are restricted to 1 second–14 days, warnings require a reason, and chat settings are patched one mode at a time. A failed or uncertain request is not silently repeated. Permissions, message age, queue races and channel restrictions remain Twitch's authority; an action accepted by the request fixture is not proof it will succeed for every real account.
 
 The native AutoMod queue starts when you tap **Listen for new held messages**. It contains at most 100 newly held items, removes items handled by another moderator, and stops when you leave the foreground. Start listening again after returning. It does not backfill messages already held before connecting. Use **Open full AutoMod queue in Twitch Mod View** for older items, private-term context or gaps.
 
@@ -55,7 +59,7 @@ Setting an overall AutoMod level replaces custom category levels; the confirmati
 
 Use **Polls → open Twitch poll manager** for the dedicated poll panel, or **Open Twitch Mod View** for polls, predictions and the full moderator workspace. These are explicit browser links, not native panels. Twitch's public poll/prediction management APIs use broadcaster authorization, so a moderator's token is not substituted or treated as the broadcaster's. [Twitch API permissions](https://dev.twitch.tv/docs/api/reference/#create-poll), [Twitch poll controls](https://help.twitch.tv/s/article/how-to-use-polls?language=en_US).
 
-**Your browser has its own Twitch login.** Check the account shown there; switching HexStream accounts does not switch browser cookies. HexStream neither copies cookies into those panels nor forwards its login credentials. The browser Mod View route is also available from the channel picker if native API login is unavailable.
+**Your browser has its own Twitch login.** Check the account shown there; switching HexStream accounts does not switch browser cookies. HexStream neither copies cookies into those panels nor forwards its login credentials. Browser panels are opened from a verified channel context; their own Twitch login and permissions remain separate.
 
 ## Create a clip from someone else's live stream
 
