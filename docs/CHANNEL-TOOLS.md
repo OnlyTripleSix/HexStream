@@ -1,6 +1,6 @@
 # Channel alerts, whispers, moderation and clips
 
-These features are included in the **beta.8.3 test candidate**. The last published beta remains available while the candidate receives live-account checks.
+These features are included in the **beta.8.4 test candidate**. The last published beta remains available while the candidate receives live-account checks.
 
 ## Get connected
 
@@ -16,6 +16,8 @@ Do this separately for each account you use. If Twitch refuses an action, check 
 ## Alerts without following
 
 Open the channel page and tap its bell. Following is a separate choice. The bell can save a channel in the active account's notification list without sending a follow request. An explicitly saved alert survives unfollowing; turn the bell off when you no longer want it.
+
+On a page opened with only a username, HexStream first obtains the broadcaster's ID from channel metadata and loads its saved alert state. Beta.8.4 fixes the bell silently ignoring taps on these pages. A tap before details finish loading now explains that it is waiting; storage failures also show an error. Reopening the page restores the independent alert even while the channel remains unfollowed.
 
 Android notification permission and the app's global live-notification switch must be on. Existing notification polling uses Android's periodic background work, so this is not an instant go-live push guarantee. Notification filtering still applies, and only the active account's worker posts alerts.
 

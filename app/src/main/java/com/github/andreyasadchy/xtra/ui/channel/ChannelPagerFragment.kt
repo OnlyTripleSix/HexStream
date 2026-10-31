@@ -85,6 +85,7 @@ class ChannelPagerFragment : BaseNetworkFragment(), Scrollable, FragmentHost, In
     private val args: ChannelPagerFragmentArgs by navArgs()
     private val viewModel: ChannelPagerViewModel by viewModels { ChannelPagerViewModelFactory }
     private var firstLaunch = true
+    private val notificationChannelId: String? get() = viewModel.channelId
 
     override val currentFragment: Fragment?
         get() = childFragmentManager.findFragmentByTag("f${binding.viewPager.currentItem}")
@@ -172,11 +173,17 @@ class ChannelPagerFragment : BaseNetworkFragment(), Scrollable, FragmentHost, In
             toolbar.setOnMenuItemClickListener { menuItem ->
                 when (menuItem.itemId) {
                     R.id.toggleNotifications -> {
-                        viewModel.notificationsEnabled.value?.let {
+                        val channelId = notificationChannelId
+                        val alertEnabled = viewModel.notificationsEnabled.value
+                        if (channelId == null || alertEnabled == null) {
+                            Toast.makeText(requireContext(), R.string.hex_channel_alert_loading, Toast.LENGTH_SHORT).show()
+                            return@setOnMenuItemClickListener true
+                        }
+                        alertEnabled.let {
                             if (it) {
                                 viewModel.disableNotifications(
                                     requireContext().tokenPrefs().getString(C.USER_ID, null),
-                                    args.channelId,
+                                    channelId,
                                     setting,
                                     requireContext().prefs().getString(C.NETWORK_LIBRARY, C.OKHTTP),
                                     TwitchApiHelper.getGQLHeaders(requireContext(), true),
@@ -186,14 +193,14 @@ class ChannelPagerFragment : BaseNetworkFragment(), Scrollable, FragmentHost, In
                                 val notificationsEnabled = requireContext().prefs().getBoolean(C.LIVE_NOTIFICATIONS_ENABLED, false)
                                 viewModel.enableNotifications(
                                     requireContext().tokenPrefs().getString(C.USER_ID, null),
-                                    args.channelId,
+                                    channelId,
                                     setting,
                                     notificationsEnabled,
                                     requireContext().prefs().getString(C.NETWORK_LIBRARY, C.OKHTTP),
                                     TwitchApiHelper.getGQLHeaders(requireContext(), true),
                                     requireContext().prefs().getBoolean(C.ENABLE_INTEGRITY, false)
                                 )
-                                if (!args.channelId.isNullOrBlank() && !notificationsEnabled) {
+                                if (!notificationsEnabled) {
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                                         ActivityCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
                                     ) {
@@ -541,6 +548,7 @@ class ChannelPagerFragment : BaseNetworkFragment(), Scrollable, FragmentHost, In
                 viewModel.stream.collectLatest { stream ->
                     if (stream != null) {
                         updateStreamLayout(stream)
+                        loadFollowAndNotificationState()
                     }
                 }
             }
@@ -550,13 +558,18 @@ class ChannelPagerFragment : BaseNetworkFragment(), Scrollable, FragmentHost, In
                 viewModel.user.collectLatest { user ->
                     if (user != null) {
                         updateUserLayout(user)
+                        loadFollowAndNotificationState()
                     }
                 }
             }
         }
+        loadFollowAndNotificationState()
+    }
+
+    private fun loadFollowAndNotificationState() {
         viewModel.isFollowingChannel(
             requireContext().tokenPrefs().getString(C.USER_ID, null),
-            args.channelId,
+            notificationChannelId,
             args.channelLogin,
             requireContext().prefs().getString(C.UI_FOLLOW_BUTTON, "0")?.toIntOrNull() ?: 0,
             requireContext().prefs().getString(C.NETWORK_LIBRARY, C.OKHTTP),
@@ -835,7 +848,7 @@ class ChannelPagerFragment : BaseNetworkFragment(), Scrollable, FragmentHost, In
                 )
             }
             "enableNotifications" -> {
-                args.channelId?.let {
+                notificationChannelId?.let {
                     viewModel.enableNotifications(
                         requireContext().tokenPrefs().getString(C.USER_ID, null),
                         it,
@@ -848,7 +861,7 @@ class ChannelPagerFragment : BaseNetworkFragment(), Scrollable, FragmentHost, In
                 }
             }
             "disableNotifications" -> {
-                args.channelId?.let {
+                notificationChannelId?.let {
                     viewModel.disableNotifications(
                         requireContext().tokenPrefs().getString(C.USER_ID, null),
                         it,

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.0-beta.8.4 (channel alert test candidate)
+
+- Fix an inert notification bell on channel pages opened with only a username. Use the broadcaster ID returned by channel metadata, then load the saved alert state.
+- Keep independent alerts separate from following. Show loading and storage-failure feedback instead of silently ignoring a bell tap; avoid duplicate follow-state lookups while metadata arrives.
+
 ## 1.0.0-beta.8.3 (history test candidate)
 
 - Load existing Twitch whisper threads and paged older messages through the active account's web login. Verify the returned owner, participants and selected thread before importing data.

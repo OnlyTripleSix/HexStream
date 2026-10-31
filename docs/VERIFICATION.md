@@ -1,5 +1,11 @@
 # Verification and known limits
 
+## Username-only channel alerts: 1.0.0-beta.8.4 test candidate
+
+All **188 JVM tests /28 suites** and **27 account-free phone tests** passed; lint reports zero errors and23 reviewed warnings. Two new Android regressions use the real isolated account database with synthetic channel metadata: a page opened with only a username resolves its broadcaster ID, saves/removes an independent alert without creating a local follow, and restores an existing alert while follow state stays false. Empty request headers and local-follow lookup mode keep these fixtures from issuing Twitch mutations. Existing account/database, whisper, role, clip, overlay, filter and proxy checks remain included.
+
+The channel screen now loads alert state again when user/stream metadata supplies the missing ID. Early taps explain that details are loading, and storage failures display an error. These checks verify saved selection and identity handling; they do not force a real go-live event or certify background notification timing. Android permissions, the global switch, filters and periodic scheduling still apply.
+
 ## Whisper history: 1.0.0-beta.8.3 test candidate
 
 All **188 JVM tests /28 suites** passed, with zero failures/errors/skips. New coverage checks owned conversation/message queries, older cursors, unavailable conversations, wrong owners/participants/threads/senders, account changes, deleted messages, chronological deduplication, one-to-one reconciliation of local sends, and contiguous server windows after cache loads, refreshes and long gaps. Verification headers match the current login/client regardless of header-name casing; expired, missing or other-session proofs are rejected. Request fixtures use synthetic responses and never submit a real whisper.

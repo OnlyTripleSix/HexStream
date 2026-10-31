@@ -25,6 +25,8 @@ import com.github.andreyasadchy.xtra.util.C
 import com.github.andreyasadchy.xtra.util.NetworkUtils
 import com.github.andreyasadchy.xtra.util.NetworkUtils.executeAsync
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -67,6 +69,11 @@ class ChannelPagerViewModel(
     val stream: StateFlow<Stream?> = _stream
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> = _user
+    val channelId: String?
+        get() = args.channelId?.takeIf { it.isNotBlank() }
+            ?: _user.value?.id?.takeIf { it.isNotBlank() }
+            ?: _stream.value?.channelId?.takeIf { it.isNotBlank() }
+    private var followingJob: Job? = null
 
     fun loadStream(networkLibrary: String?, gqlHeaders: Map<String, String>, helixHeaders: Map<String, String>, enableIntegrity: Boolean) {
         if (_stream.value == null) {
@@ -202,8 +209,9 @@ class ChannelPagerViewModel(
                         }
                     }
                 }
+            } catch (e: CancellationException) { throw e
             } catch (e: Exception) {
-
+                notifications.value = Pair(true, "Could not save this channel alert. Reopen the channel and try again.")
             }
         }
     }
@@ -234,8 +242,9 @@ class ChannelPagerViewModel(
                         notifications.value = Pair(false, null)
                     }
                 }
+            } catch (e: CancellationException) { throw e
             } catch (e: Exception) {
-
+                notifications.value = Pair(false, "Could not remove this channel alert. Reopen the channel and try again.")
             }
         }
     }
@@ -247,8 +256,8 @@ class ChannelPagerViewModel(
     }
 
     fun isFollowingChannel(userId: String?, channelId: String?, channelLogin: String?, setting: Int, networkLibrary: String?, gqlHeaders: Map<String, String>, helixHeaders: Map<String, String>) {
-        if (_isFollowing.value == null) {
-            viewModelScope.launch {
+        if (_isFollowing.value == null && followingJob?.isActive != true) {
+            followingJob = viewModelScope.launch {
                 try {
                     if (!channelId.isNullOrBlank()) {
                         _notificationsEnabled.value = notificationsRepository.getUserById(channelId) != null
@@ -267,8 +276,9 @@ class ChannelPagerViewModel(
                             _notificationsEnabled.value = notificationsRepository.getUserById(channelId) != null
                         }
                     }
+                } catch (e: CancellationException) { throw e
                 } catch (e: Exception) {
-
+                    if (_notificationsEnabled.value == null) notifications.value = Pair(false, "Could not read the saved channel alert. Reopen the channel and try again.")
                 }
             }
         }

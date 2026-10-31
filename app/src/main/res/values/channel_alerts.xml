@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hex_channel_alert_loading" translatable="false">Channel details are still loading. Try the bell again in a moment.</string>
+</resources>
