@@ -1,6 +1,6 @@
 # Channel alerts, whispers, moderation and clips
 
-These features are included in the **beta.8 test candidate**. The last published beta remains available while the candidate receives phone and live-account checks.
+These features are included in the **beta.8 test candidate**. The last published beta remains available while the candidate receives live-account checks.
 
 ## Get connected
 
