@@ -71,6 +71,7 @@ object PrototypeAccounts {
             editor.putString(C.GQL_HEADERS, headers.toString())
         }
         editor.putLong(C.INTEGRITY_EXPIRATION, 0)
+        editor.remove(WhisperHistorySession.VERIFIED_HEADERS).remove(WhisperHistorySession.VERIFIED_UNTIL)
         check(editor.commit())
         record?.getJSONObject("clients")?.let { config ->
             val e = c.prefs().edit()

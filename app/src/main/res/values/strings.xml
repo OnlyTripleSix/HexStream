@@ -587,7 +587,7 @@
     <string name="hex_about_source" translatable="false">HexStream source</string>
     <string name="hex_about_xtra" translatable="false">Xtra upstream</string>
     <string name="hex_whispers_title" translatable="false">Whispers</string>
-    <string name="hex_whispers_help" translatable="false">Show Whispers in the menu and receive new messages for the active account while HexStream is open. Local history is encrypted and separate for each account. Twitch cannot supply old or missed messages. Example: enable this to message a friend while browsing; turn it off to remove the feature and connection.</string>
+    <string name="hex_whispers_help" translatable="false">Show Whispers in the menu and receive new messages for the active account while HexStream is open. Existing Twitch conversations and older messages load when you open the inbox; recent messages are cached with device-key encryption. Background alerts are not yet included. Example: enable this to message a friend or read an older conversation; turn it off to hide the feature and close live receiving.</string>
     <string name="hex_mod_title" translatable="false">Moderator tools</string>
     <string name="hex_mod_visibility_title" translatable="false">Show detected moderator controls</string>
     <string name="hex_mod_help" translatable="false">Show moderator controls when Twitch verifies that your active account moderates the current channel or owns it. The setting controls visibility; channel roles determine access. Actions stay tied to that channel and permissions are checked again before submitting. Requires Twitch API login permissions. Example: open a stream you moderate and use its player menu or tap a chat message.</string>

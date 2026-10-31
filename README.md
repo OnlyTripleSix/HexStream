@@ -31,7 +31,7 @@ Fresh installations start with **empty filter lists**. Language restrictions and
 
 The app and extension are separate installations with explicit compatible-list export/import. There is no automatic phone/browser sync. Android's language identification and emoji controls differ from the extension's character presets, and advanced regex dialects can differ. [Browser filtering and migration details →](https://github.com/OnlyTripleSix/HexStream-Filter/blob/main/docs/FILTERING.md#using-it-with-hexstream-for-android)
 
-> **Beta.8.2 test candidate:** independent channel alerts, a limited foreground whisper preview, automatically detected channel moderation controls and live clip creation. These additions still need live-account checks before release. [Setup, coverage and limits →](docs/CHANNEL-TOOLS.md)
+> **Beta.8.3 test candidate:** independent channel alerts, existing whisper conversations with older-message paging, automatically detected channel moderation controls and live clip creation. Background whisper alerts remain unfinished; these additions still need live-account checks before release. [Setup, coverage and limits →](docs/CHANNEL-TOOLS.md)
 
 ## What HexStream adds
 

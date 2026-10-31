@@ -1,6 +1,6 @@
 # Channel alerts, whispers, moderation and clips
 
-These features are included in the **beta.8.2 test candidate**. The last published beta remains available while the candidate receives live-account checks.
+These features are included in the **beta.8.3 test candidate**. The last published beta remains available while the candidate receives live-account checks.
 
 ## Get connected
 
@@ -23,7 +23,7 @@ A failed lookup for followed channels no longer discards successful checks for i
 
 ## Whispers
 
-**Limited inbox preview:** foreground receiving and local history only. Older conversations, offline backfill and background whisper notifications are not implemented.
+Existing conversations load from Twitch when you open the inbox. Select a person to load the latest messages, then scroll up or tap **Load older messages** to go further back. The inbox loads ten conversations at a time; scrolling down or **Load more conversations** loads the next page. **Refresh** checks Twitch again. Your draft stays in place during loading and rotation.
 
 Enable **Settings → Chat → Whispers**, then return to the browsing screen and open its **top-right ⋮ menu → Whispers**. The entry updates immediately after leaving Settings. This shows Whispers in the browsing overflow menu and on a selected chat message. Turn it off to hide the entry points and close its receiving connection. The existing chat `/w` command remains available independently.
 
@@ -31,9 +31,13 @@ Use **New conversation** to enter a Twitch username, or choose Whispers on a cha
 
 One receiving connection serves the active account while HexStream has a visible screen. It closes after the app moves into the background and reconnects when you return. Inactive accounts have no whisper socket, background notification worker or inbox polling. Ordinary browsing, player and chat sessions keep their existing connections.
 
-History is **local to this installation**: at most 500 messages per account, encrypted with a device-bound Android Keystore key in a separate private store. It is not included in filter exports or the general settings backup. The conversation list shows the latest 100 correspondents; an open conversation shows its latest 100 messages. Clear local history from Whispers; clearing one account leaves the others alone.
+History uses the active account's saved Twitch web login. If the inbox asks you to reconnect, choose **Both** under API token settings and log in normally again. An update cannot add permissions to an existing token. The returned account, conversation and participants are checked before importing messages; switching accounts never combines their inboxes. Failed requests show an error and keep the local cache rather than claiming Twitch has no conversations.
 
-Twitch's public interface provides sending and incoming EventSub events, rather than an old-message history endpoint. This inbox cannot recover older Twitch conversations or messages received while HexStream was disconnected. The connection supports keepalive recovery, reconnect handoffs and bounded duplicate-event tracking. Connection gaps can still lose incoming events. [Twitch whisper API](https://dev.twitch.tv/docs/api/reference/#send-whisper), [incoming whisper events](https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#userwhispermessage).
+Some older pages require Twitch's additional verification. Tap **Verify Twitch login** to open the existing Twitch verification screen, complete any check Twitch presents, and retry the page. Verification stays inside the app, is tied to the same login/client, expires, and is discarded when switching accounts. It does not enable or change the app's global API settings. On devices with WebView profile support, this check uses a separate browser profile.
+
+The most recent **500 messages per account** are cached locally, encrypted with a device-bound Android Keystore key in a separate private store. Older pages remain available from Twitch and are loaded into the open conversation as needed. Cached data is excluded from filter exports and the general settings backup. **Info → Clear local cache** removes only the active account's local copy; it does not delete Twitch conversations. The history reader does not mark messages read, archive conversations or change Twitch's notification settings.
+
+Twitch's public API supplies sending and incoming EventSub events, without a history endpoint. History therefore uses the read-only queries used by Twitch's web client; these can change independently of the public API. Reopening or refreshing the inbox catches up on messages available from Twitch, including ones received while HexStream was disconnected. **Background whisper notifications are not implemented.** Foreground receiving supports keepalive recovery, reconnect handoffs and bounded duplicate-event tracking; a connection alone cannot guarantee gap-free delivery. [Twitch whisper API](https://dev.twitch.tv/docs/api/reference/#send-whisper), [incoming whisper events](https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#userwhispermessage).
 
 ## Moderator tools
 
@@ -74,7 +78,7 @@ One screen submits at most one creation request. Rotation retains the in-flight 
 Use an account and channel where you have permission. The automated fixtures never submit a real whisper, clip, follow, ban or other moderation action.
 
 - Save a non-followed channel's alert; reopen its channel page, then switch accounts and confirm their alert lists remain separate.
-- Reconnect API login, enable Whispers, send/receive an intentional test message, background/resume, and switch accounts. Confirm disabled Whispers disconnects and hides its menu.
+- Reconnect with Both login if requested. Enable Whispers, open an existing thread, load older pages, refresh and background/resume. Check that drafts survive loading and accounts stay separate. Confirm disabled Whispers disconnects and hides its menu. Send/receive a test message only with an intentional recipient.
 - Open a channel you moderate; inspect modes and new AutoMod holds. Test timeout/unban and one warning only on an agreed test account. Check unban requests and browser poll/Mod View access.
 - Capture one clip from a permitted non-followed live channel; rotate while waiting, open the editor, and check that only one request was made.
 - Recheck playback, transparent/docked chat, gestures, category back navigation, global filters and proxy settings.

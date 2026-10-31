@@ -13,6 +13,8 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import androidx.core.content.edit
 import androidx.fragment.app.DialogFragment
+import androidx.webkit.WebViewCompat
+import androidx.webkit.WebViewFeature
 import com.github.andreyasadchy.xtra.R
 import com.github.andreyasadchy.xtra.databinding.DialogIntegrityBinding
 import com.github.andreyasadchy.xtra.ui.main.MainActivity
@@ -21,7 +23,9 @@ import com.github.andreyasadchy.xtra.util.TwitchApiHelper
 import com.github.andreyasadchy.xtra.util.getAlertDialogBuilder
 import com.github.andreyasadchy.xtra.util.prefs
 import com.github.andreyasadchy.xtra.util.tokenPrefs
+import com.github.andreyasadchy.xtra.util.WhisperHistorySession
 import org.json.JSONObject
+import java.util.concurrent.atomic.AtomicBoolean
 
 class IntegrityDialog : DialogFragment() {
 
@@ -33,22 +37,29 @@ class IntegrityDialog : DialogFragment() {
     private val binding get() = _binding!!
     private var listener: Listener? = null
     private var rendererGone = false
+    private val whisperProofCaptured = AtomicBoolean(false)
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        listener = parentFragment as? Listener
+        listener = parentFragment as? Listener ?: activity as? Listener
     }
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         _binding = DialogIntegrityBinding.inflate(layoutInflater)
         val context = requireContext()
+        val whisperOwner = arguments?.getString(KEY_WHISPER_OWNER)
+        val whisperHeaders = if (whisperOwner != null && context.tokenPrefs().getString(C.USER_ID, null) == whisperOwner) WhisperHistorySession.baseHeaders(context) else emptyMap()
         val builder = context.getAlertDialogBuilder()
             .setView(binding.root)
-        CookieManager.getInstance().removeAllCookies(null)
-        val token = TwitchApiHelper.getGQLHeaders(context, true)[C.HEADER_TOKEN]?.removePrefix("OAuth ")
+        val cookies = if (whisperOwner != null && WebViewFeature.isFeatureSupported(WebViewFeature.MULTI_PROFILE)) {
+            WebViewCompat.setProfile(binding.webView, "hexstream-whisper-check")
+            WebViewCompat.getProfile(binding.webView).cookieManager
+        } else CookieManager.getInstance()
+        if (whisperOwner == null) cookies.removeAllCookies(null)
+        val token = (if (whisperOwner == null) TwitchApiHelper.getGQLHeaders(context, true) else whisperHeaders)[C.HEADER_TOKEN]?.removePrefix("OAuth ")
         if (!token.isNullOrBlank()) {
-            CookieManager.getInstance().setCookie("https://www.twitch.tv", "auth-token=$token")
+            cookies.setCookie("https://www.twitch.tv", "auth-token=$token")
         }
         with(binding.webView) {
             settings.javaScriptEnabled = true
@@ -66,6 +77,22 @@ class IntegrityDialog : DialogFragment() {
 
                 override fun shouldInterceptRequest(view: WebView, webViewRequest: WebResourceRequest): WebResourceResponse? {
                     if (!webViewRequest.requestHeaders.entries.find { it.key.equals("Client-Integrity", true) }?.value.isNullOrBlank()) {
+                        if (whisperOwner != null) {
+                            val received = webViewRequest.requestHeaders
+                            fun header(name: String) = received.entries.find { it.key.equals(name, true) }?.value
+                            if (webViewRequest.url.scheme == "https" && webViewRequest.url.host == "gql.twitch.tv" &&
+                                context.tokenPrefs().getString(C.USER_ID, null) == whisperOwner &&
+                                header(C.HEADER_TOKEN) == whisperHeaders[C.HEADER_TOKEN] && header(C.HEADER_CLIENT_ID) == whisperHeaders[C.HEADER_CLIENT_ID] &&
+                                whisperProofCaptured.compareAndSet(false, true)) {
+                                val safe = received.filterKeys { name -> name.equals(C.HEADER_TOKEN, true) || name.equals(C.HEADER_CLIENT_ID, true) || name.equals("Client-Integrity", true) || name.equals("X-Device-Id", true) }
+                                context.tokenPrefs().edit {
+                                    putString(WhisperHistorySession.VERIFIED_HEADERS, JSONObject(safe).toString())
+                                    putLong(WhisperHistorySession.VERIFIED_UNTIL, System.currentTimeMillis() + 57600000)
+                                }
+                                activity?.runOnUiThread { listener?.onIntegrityTokenLoaded(requireArguments().getString(KEY_CALLBACK)); dismissAllowingStateLoss() }
+                            }
+                            return super.shouldInterceptRequest(view, webViewRequest)
+                        }
                         context.tokenPrefs().edit {
                             putLong(C.INTEGRITY_EXPIRATION, System.currentTimeMillis() + 57600000)
                             putString(C.GQL_HEADERS, JSONObject(
@@ -105,6 +132,7 @@ class IntegrityDialog : DialogFragment() {
 
     companion object {
         private const val KEY_CALLBACK = "callback"
+        private const val KEY_WHISPER_OWNER = "whisper_owner"
 
         fun newInstance(callback: String?): IntegrityDialog {
             return IntegrityDialog().apply {
@@ -113,5 +141,6 @@ class IntegrityDialog : DialogFragment() {
                 }
             }
         }
+        fun forWhispers(owner: String) = newInstance("whispers").apply { requireArguments().putString(KEY_WHISPER_OWNER, owner) }
     }
 }

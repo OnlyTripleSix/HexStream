@@ -1,5 +1,11 @@
 # Verification and known limits
 
+## Whisper history: 1.0.0-beta.8.3 test candidate
+
+All **188 JVM tests /28 suites** passed, with zero failures/errors/skips. New coverage checks owned conversation/message queries, older cursors, unavailable conversations, wrong owners/participants/threads/senders, account changes, deleted messages, chronological deduplication, one-to-one reconciliation of local sends, and contiguous server windows after cache loads, refreshes and long gaps. Verification headers match the current login/client regardless of header-name casing; expired, missing or other-session proofs are rejected. Request fixtures use synthetic responses and never submit a real whisper.
+
+Device fixtures additionally cover an existing conversation/older message rendering with a preserved draft and explicit missing-login guidance. Their execution and the signed-in history check are recorded with the candidate's local verification receipt; a compiled fixture is not evidence of live Twitch access. The history reader uses Twitch's web interface, which can change independently of the public API. Background whisper alerts remain unfinished. [Setup and limits](CHANNEL-TOOLS.md).
+
 ## Channel-specific moderation: 1.0.0-beta.8.2 test candidate
 
 All **159 JVM tests /24 suites** and **23 account-free phone tests** passed. The new role regressions cover owner identity, exact broadcaster IDs, later/empty membership pages, repeated/bounded cursors, cancellation, absent and revoked roles, roles in another channel, account changes during verification, and a fresh check before each native write. Existing clip and whisper tests verify that these viewer features need no moderator lookup. The device fixture confirms an unverified channel exposes neither moderation actions nor an editable channel selector. The prior settings-menu, account, filters, proxy and overlay checks remain included.

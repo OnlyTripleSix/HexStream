@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="hex_whisper_history_status" type="id" />
+    <string name="hex_whispers_off" translatable="false">Whispers are off</string>
+    <string name="hex_whispers_enable_hint" translatable="false">Enable Whispers in Settings → Chat to show the menu and receive new messages while HexStream is open.</string>
+    <string name="hex_whisper_help_button" translatable="false">Info</string>
+    <string name="hex_whisper_history_help" translatable="false">Your Twitch conversations load when you open this screen. Select a person and scroll up for older messages, or use Load older messages. Refresh checks Twitch again.
+
+History uses the active account’s Twitch login and never combines accounts. The most recent 500 messages are cached locally with device-key encryption. Clearing that cache leaves Twitch’s conversations unchanged.
+
+New whispers arrive while HexStream is visible and connected. Reopening this inbox checks Twitch for missed messages. Background whisper notifications are not implemented. An accepted send is not a delivery receipt.</string>
+    <string name="hex_whisper_clear_cache" translatable="false">Clear local cache</string>
+    <string name="hex_whisper_clear_cache_confirm" translatable="false">Remove this account’s locally cached messages? Twitch’s history stays unchanged and can be loaded again.</string>
+    <string name="hex_whisper_new" translatable="false">New conversation</string>
+    <string name="hex_whisper_username" translatable="false">Twitch username</string>
+    <string name="hex_whisper_refresh" translatable="false">Refresh</string>
+    <string name="hex_whisper_verify" translatable="false">Verify Twitch login</string>
+    <string name="hex_whisper_more_threads" translatable="false">Load more conversations</string>
+    <string name="hex_whisper_older" translatable="false">Load older messages</string>
+    <string name="hex_whisper_message" translatable="false">Message • up to 500 characters</string>
+    <string name="hex_whisper_send" translatable="false">Send</string>
+    <string name="hex_whisper_send_confirm" translatable="false">Send whisper to %1$s?</string>
+    <string name="hex_whisper_message_heading" translatable="false">%1$s • %2$s</string>
+    <string name="hex_whisper_empty_threads" translatable="false">No conversations are loaded. Refresh to check Twitch; any loading or login problem appears above.</string>
+    <string name="hex_whisper_empty_messages" translatable="false">No messages are loaded in this conversation. Refresh to check Twitch.</string>
+</resources>

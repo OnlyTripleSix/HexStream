@@ -21,6 +21,8 @@ object WhisperCenter {
     val entries = mutableEntries.asStateFlow()
     val status = MutableStateFlow("Whispers are off")
     private var account: String? = null
+    private val retired = linkedSetOf<String>()
+    internal fun retiredIds(owner: String): Set<String> = if (account == owner) retired.toSet() else emptySet()
     private var connection: Job? = null
     private var delayedStop: Job? = null
     private var started = 0
@@ -50,7 +52,7 @@ object WhisperCenter {
     private fun restart() {
         connection?.cancel(); connection = null
         val newAccount = app.tokenPrefs().getString(C.USER_ID, null)
-        if (newAccount != account) { mutableEntries.value = emptyList(); account = newAccount }
+        if (newAccount != account) { mutableEntries.value = emptyList(); retired.clear(); account = newAccount }
         if (!app.prefs().getBoolean(ENABLED, false)) { status.value = "Whispers are off"; return }
         connection = scope.launch {
             try {
@@ -73,7 +75,8 @@ object WhisperCenter {
     suspend fun append(api: ChannelActionsApi, entry: WhisperEntry) = lock.withLock {
         api.checkCurrent()
         if (account != api.userId) return@withLock
-        val next = (mutableEntries.value.filterNot { it.id == entry.id } + entry).takeLast(500)
+        if (entry.id in retired) return@withLock
+        val next = WhisperMessages.merge(api.userId, mutableEntries.value, listOf(entry)).takeLast(500)
         withContext(Dispatchers.IO) { WhisperHistory.write(app, api.userId, next) }
         api.checkCurrent(); mutableEntries.value = next
     }
@@ -81,5 +84,22 @@ object WhisperCenter {
         api.checkCurrent()
         withContext(Dispatchers.IO) { WhisperHistory.clear(app, api.userId) }
         api.checkCurrent(); mutableEntries.value = emptyList()
+    }
+    suspend fun clearActiveHistory(owner: String) = lock.withLock {
+        if (owner.isBlank() || app.tokenPrefs().getString(C.USER_ID, null) != owner) throw ActionFailure("The active account changed. Reopen Whispers.")
+        withContext(Dispatchers.IO) { WhisperHistory.clear(app, owner) }
+        if (app.tokenPrefs().getString(C.USER_ID, null) != owner) throw ActionFailure("The active account changed. Reopen Whispers.")
+        mutableEntries.value = emptyList()
+    }
+    suspend fun importHistory(api: WhisperHistoryApi, entries: List<WhisperEntry>, deleted: Set<String>) = lock.withLock {
+        api.checkCurrent()
+        if (account != api.accountId) throw ActionFailure("The active account changed. Reopen Whispers.")
+        val result = WhisperMessages.reconcile(api.accountId, mutableEntries.value.filterNot { it.id in retired }, entries.filterNot { it.id in retired }, deleted)
+        val merged = result.entries.takeLast(500)
+        withContext(Dispatchers.IO) { WhisperHistory.write(app, api.accountId, merged) }
+        api.checkCurrent()
+        retired += result.retired
+        while (retired.size > 2_000) retired.remove(retired.first())
+        mutableEntries.value = merged
     }
 }

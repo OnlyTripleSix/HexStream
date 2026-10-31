@@ -4,9 +4,9 @@ HexStream started from Xtra 2.60.7, commit [`a3cbb0325f3330573a6738f7d36a2c5b785
 
 ## Current integrated checkpoint
 
-HexStream **1.0.0-beta.8.2 test candidate** incorporates application changes through **Xtra 2.60.9**, commit [`0444de816e28de1654979a5a2a663b3fc51cb6a6`](https://github.com/crackededed/Xtra/commit/0444de816e28de1654979a5a2a663b3fc51cb6a6). HexStream keeps its own version, package and signing identity, explained settings and [credited ThystTV chat adaptation](THYST-CHAT.md), with the frameless transparent overlay, side selection and inline composer introduced in beta.6.
+HexStream **1.0.0-beta.8.3 test candidate** incorporates application changes through **Xtra 2.60.9**, commit [`0444de816e28de1654979a5a2a663b3fc51cb6a6`](https://github.com/crackededed/Xtra/commit/0444de816e28de1654979a5a2a663b3fc51cb6a6). HexStream keeps its own version, package and signing identity, explained settings and [credited ThystTV chat adaptation](THYST-CHAT.md), with the frameless transparent overlay, side selection and inline composer introduced in beta.6.
 
-The beta.8 candidate adds [account-bound channel tools](../CHANNEL-TOOLS.md) without advancing this upstream checkpoint. Its source remains on an isolated feature branch until candidate verification. Preserve its independent notification list, optional foreground whisper lifecycle, encrypted per-account history, mutation guards and separate-browser-account notices during future merges.
+The beta.8 candidate adds [account-bound channel tools](../CHANNEL-TOOLS.md) without advancing this upstream checkpoint. Its source remains on an isolated feature branch until candidate verification. Preserve its independent notification list, optional foreground whisper lifecycle, owned web-history paging, encrypted per-account cache, mutation guards and separate-browser-account notices during future merges.
 
 ## Xtra 2.60.9 integration
 

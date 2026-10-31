@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0-beta.8.3 (history test candidate)
+
+- Load existing Twitch whisper threads and paged older messages through the active account's web login. Verify the returned owner, participants and selected thread before importing data.
+- Replace the local-only inbox with a lazy conversation/message list, earlier-message loading, refresh, visible login/loading errors and a persistent composer.
+- Catch up on inbox history when reopened; keep foreground live receiving and an encrypted cache of the latest 500 messages per account.
+- Reconcile submitted local sends with server history without duplicating messages, preserve deleted-message markers, and reject data from another account.
+- Background whisper notifications remain unfinished. No real whisper is sent by automated checks.
+
 ## 1.0.0-beta.8.2 (test candidate)
 
 - Detect the active account's moderator/broadcaster role before showing live-player or chat-message moderation controls.
@@ -16,7 +24,7 @@
 ## 1.0.0-beta.8 (test candidate)
 
 - Make channel alerts independent from following, retain an explicitly saved bell after unfollowing, and keep successful notification sources when another lookup fails.
-- Add an optional active-account whisper inbox with foreground receiving, encrypted bounded local history, composing, privacy/permission guidance and an on/off setting. Twitch cannot supply old or missed inbox history.
+- Add an optional active-account whisper inbox with foreground receiving, encrypted bounded local history, composing, privacy/permission guidance and an on/off setting. This initial preview did not retrieve older Twitch history; beta.8.3 adds that reader.
 - Add moderator channel selection and native bans, timeouts, warnings, selected-message deletion, chat modes, announcements, AutoMod holds/settings/terms, unban requests and Shield controls. Confirm mutations and reject stale account sessions.
 - Link the full Twitch Mod View and poll manager for polls, predictions and remaining tools, with a clear separate-browser-account notice.
 - Add live clip creation for any permitted channel, with one-request protection, rotation retention and a validated Twitch editor link.
