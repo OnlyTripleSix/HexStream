@@ -25,3 +25,7 @@ Category snapshot counters are enabled only in debug builds and contain counts, 
 For a useful report, provide the app version, Android/device model, reproduction steps, selected sort/tag/language settings, direct/proxy playback mode and a redacted error description. A full account backup or filter export is usually unnecessary.
 
 For a sensitive vulnerability, avoid putting exploitable details or credentials in a public issue. Use GitHub’s private vulnerability reporting when available on the repository. Never attach a real account token as a reproduction aid.
+
+## Channel tools candidate
+
+Optional whisper history is encrypted with a device-bound Android Keystore key in a separate private store, bounded to 500 messages per account and excluded from app settings/filter exports. It can be cleared per account. Receiving uses the active account while the app is visible, with no background service for inactive accounts. Native moderator, whisper and clip requests have logging interceptors and automatic mutation retries disabled. Browser Mod View, polls and clip editing use the browser’s own login, with no token or cookie handoff. See [channel tools](CHANNEL-TOOLS.md) for the history and API limitations.

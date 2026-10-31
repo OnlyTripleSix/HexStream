@@ -138,6 +138,12 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/messageLayout">
 
+            <Button android:id="@+id/whisperUser" style="?attr/bottomSheetButtonStyle"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="@string/hex_whispers_title" android:visibility="gone" />
+            <Button android:id="@+id/moderateUser" style="?attr/bottomSheetButtonStyle"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="@string/hex_moderate_message" android:visibility="gone" />
             <Button
                 android:id="@+id/reply"
                 style="?attr/bottomSheetButtonStyle"

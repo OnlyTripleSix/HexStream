@@ -1712,6 +1712,13 @@ abstract class PlayerFragment : BaseNetworkFragment(), RadioButtonDialogFragment
         )
     }
 
+    fun openChannelAction(moderator: Boolean) {
+        val service = playbackService ?: return
+        if (service.type != BasePlaybackService.STREAM || service.channelId.isNullOrBlank()) return
+        val target = if (moderator) com.github.andreyasadchy.xtra.ui.main.ModeratorActivity::class.java else com.github.andreyasadchy.xtra.ui.main.CreateClipActivity::class.java
+        startActivity(Intent(requireContext(), target).putExtra("channel_id", service.channelId).putExtra("channel_login", service.channelLogin))
+    }
+
     fun share() {
         when (playbackService?.type) {
             BasePlaybackService.STREAM -> {

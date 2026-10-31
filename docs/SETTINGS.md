@@ -59,3 +59,7 @@ Use **Export full filter settings** on the filter screen to preserve its switche
 Token, request-header and account-detail values are not copied into settings summaries or search results. The credential editors remain advanced account-repair tools; normal account switching belongs in the account menu.
 
 New help text currently falls back to English when a translation is unavailable. Existing translated setting titles remain available.
+
+## Channel tools in the beta.8 candidate
+
+Chat settings include **Whispers** (off initially) and **Moderator tools** (shown initially). Each has inline help and an example. Whisper receiving runs only while the app is visible and only for the active account; turning it off removes its menu and connection. Moderator tools can be hidden independently. [Login permissions, browser account boundaries and instructions](CHANNEL-TOOLS.md).

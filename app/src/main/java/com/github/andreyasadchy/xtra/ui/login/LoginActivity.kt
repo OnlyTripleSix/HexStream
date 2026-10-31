@@ -142,6 +142,17 @@ class LoginActivity : AppCompatActivity() {
             val apiSetting = prefs().getString(C.API_LOGIN, "0")?.toInt() ?: 0
             val helixRedirect = prefs().getString(C.HELIX_REDIRECT, "https://localhost")
             val helixScopes = listOf(
+                "clips:edit",
+                "user:read:moderated_channels",
+                "moderator:manage:automod",
+                "moderator:manage:automod_settings",
+                "moderator:read:automod_settings",
+                "moderator:manage:blocked_terms",
+                "moderator:read:blocked_terms",
+                "moderator:manage:unban_requests",
+                "moderator:read:unban_requests",
+                "moderator:manage:warnings",
+                "moderator:manage:shield_mode",
                 "channel:edit:commercial", // channels/commercial
                 "channel:manage:broadcast", // streams/markers
                 "channel:manage:moderators", // moderation/moderators

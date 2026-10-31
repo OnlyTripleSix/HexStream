@@ -74,6 +74,10 @@ class PlayerSettingsDialog : BottomSheetDialogFragment() {
                 (parentFragment as? PlayerFragment)?.setQualityText()
             }
             if (type == BasePlaybackService.STREAM) {
+                menuCreateClip.visibility = View.VISIBLE
+                menuCreateClip.setOnClickListener { (parentFragment as? PlayerFragment)?.openChannelAction(false); dismiss() }
+                menuModTools.isVisible = requireContext().prefs().getBoolean("hex_moderator_tools", true)
+                menuModTools.setOnClickListener { (parentFragment as? PlayerFragment)?.openChannelAction(true); dismiss() }
                 if (requireContext().prefs().getBoolean(C.PLAYER_MENU_VIEWER_LIST, true)) {
                     menuViewerList.visibility = View.VISIBLE
                     menuViewerList.setOnClickListener {

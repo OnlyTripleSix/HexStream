@@ -1,5 +1,15 @@
 # Verification and known limits
 
+## Channel tools: 1.0.0-beta.8 test candidate
+
+The local candidate's complete **144 JVM tests across 23 suites passed**, with zero failures/errors/skips. Its 25 new tests cover native request payloads, moderator/sender identity, stale account rejection before and after a request, invalid timeout/chat/message values, individual chat-mode patches, selected-message versus whole-chat deletion, permitted-channel clip creation, editor/reconnect host validation, whisper/AutoMod subscriptions, both AutoMod message shapes, unban query encoding, private header/response error handling, and partial notification-source failure/cancellation/deduplication. The previous pagination, full-tag, proxy, low-delay, rewards and overlay suites remain included.
+
+Android lint reported **zero errors and 23 reviewed warnings**. Remaining warnings concern existing dependency/build-plugin availability, resource/style suggestions and explicit preference commits; no lint check was disabled for the new tools. The optimized signed release APK and isolated QA/test APKs built locally. Version, existing certificate, neutral defaults, exact source stamp and privacy checks are recorded alongside the packaged local candidate.
+
+Four new account-free device fixtures compile: disabled-inbox guidance, moderator channel selection, explicit clip creation entry and encrypted/bounded/per-account whisper history. Settings fixtures now cover **230 preference rows**. **No device fixtures ran for beta.8:** ADB listed no connected device. Beta.6's physical-device results are historical, not coverage for these additions. No production installation/data was changed, and no real whisper, clip, follow, ban or other moderation action was submitted as a test.
+
+This is a **local test candidate on an isolated branch**, not a published replacement for beta.7. Its native tools need phone and permitted live-account checks. Polls, predictions and remaining moderator tools use explicitly separate Twitch browser panels; whispers cannot retrieve old/missed conversations, and the native AutoMod queue receives new holds only while listening. [Setup, limits and manual checks](CHANNEL-TOOLS.md).
+
 ## Upstream fixes: 1.0.0-beta.7
 
 All **119 JVM tests across 21 suites passed**, with zero failures/errors/skips. Eight new tests cover Helix timeout argument conversion, plain seconds, missing-duration defaults, suffix case, malformed/out-of-range/overflow inputs, numeric JSON duration, preserved target/reason, and explicit bans without a duration. Existing category snapshot/deduplication, filter, account-action, proxy, low-delay, quality, rewards-request and chat-overlay suites passed with the updated dependencies.

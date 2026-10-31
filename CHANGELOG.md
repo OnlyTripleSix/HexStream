@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.0-beta.8 (test candidate)
+
+- Make channel alerts independent from following, retain an explicitly saved bell after unfollowing, and keep successful notification sources when another lookup fails.
+- Add an optional active-account whisper inbox with foreground receiving, encrypted bounded local history, composing, privacy/permission guidance and an on/off setting. Twitch cannot supply old or missed inbox history.
+- Add moderator channel selection and native bans, timeouts, warnings, selected-message deletion, chat modes, announcements, AutoMod holds/settings/terms, unban requests and Shield controls. Confirm mutations and reject stale account sessions.
+- Link the full Twitch Mod View and poll manager for polls, predictions and remaining tools, with a clear separate-browser-account notice.
+- Add live clip creation for any permitted channel, with one-request protection, rotation retention and a validated Twitch editor link.
+- Expand request/account/error regressions, independent-alert coverage and isolated account-free device fixtures. See [channel tools and candidate checks](docs/CHANNEL-TOOLS.md).
+
 ## 1.0.0-beta.7
 
 - Incorporate Xtra 2.60.9's Helix `/timeout` fix: `30s`, `5m`, `2h` and `1d` are sent as numeric seconds. Plain seconds still work and an omitted duration still means ten minutes.

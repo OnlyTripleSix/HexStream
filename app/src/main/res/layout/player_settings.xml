@@ -10,6 +10,13 @@
         android:orientation="vertical"
         android:padding="?attr/dialogLayoutPadding">
 
+        <Button android:id="@+id/menuCreateClip" style="?attr/bottomSheetButtonStyle"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/hex_create_clip" android:visibility="gone" />
+        <Button android:id="@+id/menuModTools" style="?attr/bottomSheetButtonStyle"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/hex_mod_title" android:visibility="gone" />
+
         <LinearLayout android:id="@+id/menuFloatingChatGroup" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
             <CheckBox android:id="@+id/menuFloatingChat" android:layout_width="match_parent"

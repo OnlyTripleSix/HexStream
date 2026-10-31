@@ -135,6 +135,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.github.andreyasadchy.xtra.util.WhisperCenter.initialize(application)
         prefs = prefs()
         migrateSettings()
         if (tokenPrefs().getLong(C.UPDATE_LAST_CHECKED, 0) <= 0L) {
@@ -632,9 +633,15 @@ class MainActivity : AppCompatActivity() {
         filtersResultLauncher.launch(Intent(this, FiltersActivity::class.java))
     }
     fun handlePrototypeMenu(item: android.view.MenuItem): Boolean = when (item.itemId) {
+        R.id.hex_whispers -> { startActivity(Intent(this, WhispersActivity::class.java)); true }
+        R.id.hex_mod_tools -> { startActivity(Intent(this, ModeratorActivity::class.java)); true }
         R.id.prototype_accounts -> { showAccounts(); true }
         R.id.prototype_blocked_tags -> { showBlockedTags(); true }
         else -> false
+    }
+    fun configureChannelMenus(menu: Menu) {
+        menu.findItem(R.id.hex_whispers)?.isVisible = prefs().getBoolean("hex_whispers", false)
+        menu.findItem(R.id.hex_mod_tools)?.isVisible = prefs().getBoolean("hex_moderator_tools", true)
     }
     private fun installPrototypeMenu() {
         if (intent.getBooleanExtra("prototype_add_account", false)) {

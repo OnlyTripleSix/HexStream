@@ -7,6 +7,7 @@ import com.github.andreyasadchy.xtra.model.ShownNotification
 import com.github.andreyasadchy.xtra.model.ui.Stream
 import com.github.andreyasadchy.xtra.util.C
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import kotlin.time.Instant
 
@@ -18,31 +19,25 @@ class NotificationsRepository(
 ) {
 
     suspend fun getNewStreams(networkLibrary: String?, gqlHeaders: Map<String, String>, helixHeaders: Map<String, String>): List<Stream> = withContext(Dispatchers.IO) {
-        val list = mutableListOf<Stream>()
-        notificationUsersDao.getAll().map { it.channelId }.takeIf { it.isNotEmpty() }?.let {
+        val ids = notificationUsersDao.getAll().map { it.channelId }
+        val sources = mutableListOf<suspend () -> List<Stream>>()
+        if (ids.isNotEmpty()) sources += suspend {
             try {
-                gqlQueryLocal(networkLibrary, gqlHeaders, it)
+                gqlQueryLocal(networkLibrary, gqlHeaders, ids)
+            } catch (e: CancellationException) { throw e
             } catch (e: Exception) {
                 if (!helixHeaders[C.HEADER_TOKEN].isNullOrBlank()) {
-                    try {
-                        helixLocal(networkLibrary, helixHeaders, it)
-                    } catch (e: Exception) {
-                        return@withContext emptyList()
-                    }
-                } else return@withContext emptyList()
-            }.let { list.addAll(it) }
-        }
-        if (!gqlHeaders[C.HEADER_TOKEN].isNullOrBlank()) {
-            try {
-                gqlQueryLoad(networkLibrary, gqlHeaders)
-            } catch (e: Exception) {
-                return@withContext emptyList()
-            }.mapNotNull { item ->
-                item.takeIf { list.find { it.channelId == item.channelId } == null }
-            }.let {
-                list.addAll(it)
+                    helixLocal(networkLibrary, helixHeaders, ids)
+                } else throw e
             }
         }
+        if (!gqlHeaders[C.HEADER_TOKEN].isNullOrBlank()) {
+            sources += suspend {
+                gqlQueryLoad(networkLibrary, gqlHeaders)
+            }
+        }
+        val fetched = NotificationSources.collect(sources)
+        val list = fetched.streams
         val liveList = list.mapNotNull { stream ->
             stream.channelId.takeUnless { it.isNullOrBlank() }?.let { channelId ->
                 stream.createdAt.takeUnless { it.isNullOrBlank() }?.let { Instant.parseOrNull(it)?.toEpochMilliseconds()?.takeIf { ms -> ms > 0 } }?.let { createdAt ->
@@ -51,7 +46,8 @@ class NotificationsRepository(
             }
         }
         val oldList = shownNotificationsDao.getAll()
-        oldList.filter { item -> liveList.find { it.channelId == item.channelId } == null }.let {
+        // A failed source cannot establish that its channels went offline.
+        if (fetched.complete) oldList.filter { item -> liveList.find { it.channelId == item.channelId } == null }.let {
             shownNotificationsDao.deleteList(it)
         }
         shownNotificationsDao.insertList(liveList)

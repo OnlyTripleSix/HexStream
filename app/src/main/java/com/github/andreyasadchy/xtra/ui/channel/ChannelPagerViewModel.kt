@@ -178,6 +178,7 @@ class ChannelPagerViewModel(
                         if (!errorMessage.isNullOrBlank()) {
                             notifications.value = Pair(true, errorMessage)
                         } else {
+                            notificationsRepository.saveUser(NotificationUser(channelId))
                             _notificationsEnabled.value = true
                             notifications.value = Pair(true, errorMessage)
                             if (notificationsEnabled) {
@@ -223,6 +224,7 @@ class ChannelPagerViewModel(
                         if (!errorMessage.isNullOrBlank()) {
                             notifications.value = Pair(false, errorMessage)
                         } else {
+                            notificationsRepository.deleteUser(NotificationUser(channelId))
                             _notificationsEnabled.value = false
                             notifications.value = Pair(false, errorMessage)
                         }
@@ -249,6 +251,7 @@ class ChannelPagerViewModel(
             viewModelScope.launch {
                 try {
                     if (!channelId.isNullOrBlank()) {
+                        _notificationsEnabled.value = notificationsRepository.getUserById(channelId) != null
                         if (setting == 0 && !gqlHeaders[C.HEADER_TOKEN].isNullOrBlank() && userId != channelId) {
                             val follower = graphQLRepository.loadQueryFollowingUser(
                                 networkLibrary = networkLibrary,
@@ -257,7 +260,8 @@ class ChannelPagerViewModel(
                                 login = channelLogin.takeIf { channelId.isBlank() },
                             ).data?.user?.self?.follower
                             _isFollowing.value = follower?.followedAt != null
-                            _notificationsEnabled.value = follower?.notificationSettings?.isEnabled == true
+                            _notificationsEnabled.value = follower?.notificationSettings?.isEnabled == true ||
+                                    notificationsRepository.getUserById(channelId) != null
                         } else {
                             _isFollowing.value = localChannelFollowsRepository.getById(channelId) != null
                             _notificationsEnabled.value = notificationsRepository.getUserById(channelId) != null
@@ -340,14 +344,13 @@ class ChannelPagerViewModel(
                         } else {
                             _isFollowing.value = false
                             follow.value = Pair(false, null)
-                            _notificationsEnabled.value = false
+                            _notificationsEnabled.value = notificationsRepository.getUserById(channelId) != null
                         }
                     } else {
                         localChannelFollowsRepository.getById(channelId)?.let { localChannelFollowsRepository.delete(it) }
                         _isFollowing.value = false
                         follow.value = Pair(false, null)
-                        notificationsRepository.deleteUser(NotificationUser(channelId))
-                        _notificationsEnabled.value = false
+                        _notificationsEnabled.value = notificationsRepository.getUserById(channelId) != null
                     }
                 }
             } catch (e: Exception) {

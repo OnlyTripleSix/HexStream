@@ -231,6 +231,17 @@ class MessageClickedDialog : BottomSheetDialogFragment(), IntegrityDialog.Listen
 
     private fun updateButtons(chatMessage: ChatMessage) {
         with(binding) {
+            whisperUser.isVisible = requireContext().prefs().getBoolean("hex_whispers", false) && !chatMessage.userLogin.isNullOrBlank()
+            whisperUser.setOnClickListener {
+                startActivity(android.content.Intent(requireContext(), com.github.andreyasadchy.xtra.ui.main.WhispersActivity::class.java).putExtra("target_login", chatMessage.userLogin))
+                dismiss()
+            }
+            moderateUser.isVisible = requireContext().prefs().getBoolean("hex_moderator_tools", true) && !requireArguments().getString(KEY_CHANNEL_ID).isNullOrBlank() && !chatMessage.userLogin.isNullOrBlank()
+            moderateUser.setOnClickListener {
+                startActivity(android.content.Intent(requireContext(), com.github.andreyasadchy.xtra.ui.main.ModeratorActivity::class.java)
+                    .putExtra("channel_id", requireArguments().getString(KEY_CHANNEL_ID)).putExtra("target_login", chatMessage.userLogin).putExtra("message_id", chatMessage.id))
+                dismiss()
+            }
             if (requireArguments().getBoolean(KEY_MESSAGING) && (!chatMessage.userId.isNullOrBlank() || !chatMessage.userLogin.isNullOrBlank())) {
                 if (!chatMessage.id.isNullOrBlank()) {
                     reply.visibility = View.VISIBLE

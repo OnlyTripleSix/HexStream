@@ -1,6 +1,13 @@
 <androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <SwitchPreferenceCompat android:key="hex_whispers" android:defaultValue="false"
+        android:title="@string/hex_whispers_title" android:summary="@string/hex_whispers_help"
+        app:iconSpaceReserved="false" app:singleLineTitle="false" />
+    <SwitchPreferenceCompat android:key="hex_moderator_tools" android:defaultValue="true"
+        android:title="@string/hex_mod_title" android:summary="@string/hex_mod_help"
+        app:iconSpaceReserved="false" app:singleLineTitle="false" />
+
     <SwitchPreferenceCompat
         android:key="hex_floating_chat" android:defaultValue="false"
         android:title="@string/hex_floating_title" android:summary="@string/hex_floating_help"

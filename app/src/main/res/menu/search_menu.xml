@@ -7,4 +7,6 @@
         app:showAsAction="never" />
     <item android:id="@+id/prototype_accounts" android:title="@string/prototype_accounts" app:showAsAction="never" />
     <item android:id="@+id/prototype_blocked_tags" android:title="@string/prototype_blocked_tags" app:showAsAction="never" />
+    <item android:id="@+id/hex_whispers" android:title="@string/hex_whispers_title" app:showAsAction="never" />
+    <item android:id="@+id/hex_mod_tools" android:title="@string/hex_mod_title" app:showAsAction="never" />
 </menu>

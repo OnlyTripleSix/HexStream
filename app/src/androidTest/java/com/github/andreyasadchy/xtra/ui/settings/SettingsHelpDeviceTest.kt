@@ -106,7 +106,7 @@ class SettingsHelpDeviceTest {
             check(screen)
             assertEquals(before, manager.sharedPreferences!!.all)
         }
-        assertEquals(228, count)
+        assertEquals(230, count)
     }
 
     @Test fun settingsScreensRenderWithFullSummaries() {
