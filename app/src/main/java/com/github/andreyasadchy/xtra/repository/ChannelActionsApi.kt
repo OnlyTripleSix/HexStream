@@ -7,6 +7,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
+import okio.BufferedSink
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -28,8 +29,12 @@ class ChannelActionsApi(client: OkHttpClient, val userId: String, private val he
         }.build()
         val req = try { Request.Builder().url(url).apply {
             headers.forEach { (name, value) -> header(name, value) }
-            method(method, if (method in listOf("POST", "PUT", "PATCH"))
-                (body ?: buildJsonObject {}).toString().toRequestBody("application/json".toMediaType()) else null)
+            val payload = when (method) {
+                "POST", "PUT", "PATCH" -> (body ?: buildJsonObject {}).toString().toRequestBody("application/json".toMediaType())
+                "DELETE" -> "".toRequestBody()
+                else -> null
+            }
+            method(method, payload?.let(::SingleSubmissionBody))
         }.build() } catch (_: IllegalArgumentException) {
             throw ActionFailure("Saved Twitch login cannot be used. Reconnect the active account.")
         }
@@ -142,6 +147,14 @@ class ChannelActionsApi(client: OkHttpClient, val userId: String, private val he
             value.takeIf { url.scheme == "https" && url.host in setOf("www.twitch.tv", "twitch.tv", "clips.twitch.tv") && url.username.isEmpty() && url.password.isEmpty() && url.port == 443 }
         }.getOrNull()
     }
+}
+
+/** Also prevents HTTP 503/421 follow-ups, which connection-retry settings alone do not cover. */
+private class SingleSubmissionBody(private val body: RequestBody) : RequestBody() {
+    override fun contentType() = body.contentType()
+    override fun contentLength() = body.contentLength()
+    override fun writeTo(sink: BufferedSink) = body.writeTo(sink)
+    override fun isOneShot() = true
 }
 
 class ActionFailure(message: String) : IOException(message)

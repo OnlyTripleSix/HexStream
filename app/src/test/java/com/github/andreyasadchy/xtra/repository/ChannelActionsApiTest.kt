@@ -7,6 +7,11 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.*
 import org.junit.Test
 import okio.Buffer
+import java.net.ServerSocket
+import java.net.SocketTimeoutException
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.concurrent.thread
 
 class ChannelActionsApiTest {
     private class Fixture(var active: Boolean = true, var code: Int = 200, var response: String = "{}", headers: Map<String, String> = mapOf("Client-Id" to "fixture", "Authorization" to "Bearer fixture")) {
@@ -67,6 +72,48 @@ class ChannelActionsApiTest {
         val f = Fixture(response = "private response")
         val error = assertThrows(ActionFailure::class.java) { runBlocking { f.api.user("example") } }
         assertFalse(error.message!!.contains("private response")); assertEquals(1, f.requests.size)
+    }
+    @Test fun writeRequestsCannotBeReplayedIncludingEmptyDeletes() = runBlocking {
+        val f = Fixture()
+        f.api.whisper("33", "Message")
+        f.api.chatSetting("22", "emote_mode", true)
+        f.api.unban("22", "33")
+        assertEquals(listOf("POST", "PATCH", "DELETE"), f.requests.map { it.method })
+        assertTrue(f.requests.all { it.body?.isOneShot() == true })
+        assertEquals(0L, f.requests.last().body!!.contentLength())
+    }
+    @Test fun realHttp503RetryAfterZeroDoesNotCreateASecondClipRequest() {
+        val received = AtomicInteger()
+        val serverError = AtomicReference<Throwable?>()
+        ServerSocket(0, 2, java.net.InetAddress.getByName("127.0.0.1")).use { server ->
+            server.soTimeout = 750
+            val worker = thread(isDaemon = true) {
+                try { repeat(2) {
+                    server.accept().use { socket ->
+                        socket.soTimeout = 2_000
+                        val reader = socket.getInputStream().bufferedReader()
+                        var length = 0
+                        while (true) {
+                            val line = reader.readLine() ?: break
+                            if (line.isEmpty()) break
+                            if (line.startsWith("Content-Length:", true)) length = line.substringAfter(':').trim().toInt()
+                        }
+                        repeat(length) { reader.read() }
+                        received.incrementAndGet()
+                        socket.getOutputStream().write("HTTP/1.1 503 Service Unavailable\r\nRetry-After: 0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n".toByteArray())
+                    }
+                } } catch (_: SocketTimeoutException) { /* No follow-up request is the expected result. */ }
+                catch (error: Throwable) { serverError.set(error) }
+            }
+            val f = Fixture()
+            // Rewrite only this synthetic request to loopback; use the real retry/follow-up stack.
+            f.api.callFactory = f.api.client.newBuilder().addInterceptor { chain ->
+                chain.proceed(chain.request().newBuilder().url("http://127.0.0.1:${server.localPort}/clips").build())
+            }.build()
+            assertThrows(ActionFailure::class.java) { runBlocking { f.api.createClip("22") } }
+            worker.join(3_000)
+            assertFalse(worker.isAlive); assertNull(serverError.get()); assertEquals(1, received.get())
+        }
     }
     @Test fun clipCreationWorksForAnyRequestedChannelWithoutFollowOrModRequest() = runBlocking {
         val f = Fixture(response = """{"data":[{"id":"clip","edit_url":"https://clips.twitch.tv/Example/edit"}]}""")
