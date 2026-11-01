@@ -4,9 +4,20 @@ HexStream started from Xtra 2.60.7, commit [`a3cbb0325f3330573a6738f7d36a2c5b785
 
 ## Current integrated checkpoint
 
-HexStream **1.0.0-beta.8.4 test candidate** incorporates application changes through **Xtra 2.60.9**, commit [`0444de816e28de1654979a5a2a663b3fc51cb6a6`](https://github.com/crackededed/Xtra/commit/0444de816e28de1654979a5a2a663b3fc51cb6a6). HexStream keeps its own version, package and signing identity, explained settings and [credited ThystTV chat adaptation](THYST-CHAT.md), with the frameless transparent overlay, side selection and inline composer introduced in beta.6.
+HexStream **1.0.0-beta.9** incorporates application changes through **Xtra 2.60.10**, commit [`0ab697de04799365f590f91e2dfbefc092c3ad5a`](https://github.com/crackededed/Xtra/commit/0ab697de04799365f590f91e2dfbefc092c3ad5a). HexStream keeps its own version, package and signing identity, explained settings and [credited ThystTV chat adaptation](THYST-CHAT.md), with the frameless transparent overlay, side selection and inline composer introduced in beta.6.
 
-The beta.8 candidate adds [account-bound channel tools](../CHANNEL-TOOLS.md) without advancing this upstream checkpoint. Its source remains on an isolated feature branch until candidate verification. Preserve its independent notification list, optional foreground whisper lifecycle, owned web-history paging, encrypted per-account cache, mutation guards and separate-browser-account notices during future merges.
+The tested beta.8 channel tools are retained in this release. Preserve their independent notification list, optional foreground whisper lifecycle, owned web-history paging, encrypted per-account cache, exact-channel moderation checks, non-replayable writes and separate-browser-account notices during future merges. See [setup and limits](../CHANNEL-TOOLS.md).
+
+## Xtra 2.60.10 integration
+
+Both original commits below were authored by **crackededed** on November 1, 2026.
+
+| Original upstream commit | Change | HexStream adaptation |
+| --- | --- | --- |
+| [`47c8d6db00bbc065719718fe69be710c406cac13`](https://github.com/crackededed/Xtra/commit/47c8d6db00bbc065719718fe69be710c406cac13) | Fix download-progress updates causing errors | Service callbacks post progress to ViewModel-owned state. The fragment applies it only in its STARTED lifecycle. Copy mutable service objects, coalesce per download, and acknowledge only the rendered snapshots so simultaneous downloads and newer callbacks are retained. |
+| [`0ab697de04799365f590f91e2dfbefc092c3ad5a`](https://github.com/crackededed/Xtra/commit/0ab697de04799365f590f91e2dfbefc092c3ad5a) | Fix stream-download crashes and update build plugins | Replace the accumulating segment URL with the latest completed segment in all six transport/write paths through a shared operation. Apply upstream database 40→41 bookmark reset while retaining saved files, row identity, bytes and progress. Update AGP 9.5.0/KSP 2.3.13; preserve HexStream version/signature and Gradle 9.8.2. |
+
+The download regressions cover stopped-screen replay, multiple active downloads, service-object reuse, newer callbacks during rendering, byte totals and a large segment sequence with one bounded resume bookmark. The exact production repair SQL is also exercised against synthetic SQLite records. Neither check submits a live Twitch download or opens a personal database. Existing pagination/API fallback ordering, tags/language/sort rules, accounts, playback, proxies, rewards and gestures remain unchanged.
 
 ## Xtra 2.60.9 integration
 

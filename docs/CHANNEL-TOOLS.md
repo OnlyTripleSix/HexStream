@@ -1,6 +1,6 @@
 # Channel alerts, whispers, moderation and clips
 
-These features are included in the **beta.8.4 test candidate**. The last published beta remains available while the candidate receives live-account checks.
+These features are included in **beta.9** after the local beta.8 candidates. Native requests still depend on Twitch permissions and your role in the selected channel; the limits and tested coverage below remain explicit.
 
 ## Get connected
 

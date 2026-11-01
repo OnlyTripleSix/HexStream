@@ -1,5 +1,15 @@
 # Verification and known limits
 
+## Xtra download fixes: 1.0.0-beta.9
+
+All **194 JVM tests /29 suites** passed, with zero failures/errors/skips. Six new regressions cover replay after a stopped screen, updates from multiple downloads, reuse of mutable service objects, a newer callback arriving during rendering, byte accounting, and 10,000 completed segments retaining just one resume URL. The prior pagination, filtering, accounts, proxies, playback, rewards, whisper and moderator request suites remain included.
+
+The exact production database 40→41 repair SQL passed two additional host-SQLite cases: existing null/valid/corrupted/large bookmarks are reset while row IDs, saved paths, byte totals, progress and unrelated alerts remain; an empty downloads table also upgrades without error. These are SQL checks, not an Android Room upgrade test.
+
+Android lint reports **zero errors and 22 reviewed warnings**, with no checks disabled. The optimized signed APK and isolated QA/test APKs built locally using JDK 21, SDK 37, AGP 9.5.0, KSP 2.3.13 and Gradle 9.8.2. The release package/version, original certificate, empty defaults, compiled credits and exact source stamp are checked during packaging; source/APK privacy checks and matching checksums accompany publication.
+
+**No ADB device was connected for beta.9.** The isolated QA/test APKs compile, but physical-device fixtures, a real Room upgrade, live download/background/resume behavior and live account actions were not run for this release. The beta.8.4 phone results below are historical. No personal app was installed or cleared. Existing tested channel tools are retained with their documented permission and live-operation limits; background whisper alerts remain unfinished.
+
 ## Username-only channel alerts: 1.0.0-beta.8.4 test candidate
 
 All **188 JVM tests /28 suites** and **27 account-free phone tests** passed; lint reports zero errors and23 reviewed warnings. Two new Android regressions use the real isolated account database with synthetic channel metadata: a page opened with only a username resolves its broadcaster ID, saves/removes an independent alert without creating a local follow, and restores an existing alert while follow state stays false. Empty request headers and local-follow lookup mode keep these fixtures from issuing Twitch mutations. Existing account/database, whisper, role, clip, overlay, filter and proxy checks remain included.

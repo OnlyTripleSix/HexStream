@@ -20,9 +20,9 @@ The filtering workflow and compatible list format were inspired by **[Unwanted T
 
 ## Get HexStream
 
-Download the APK from [Releases](https://github.com/OnlyTripleSix/HexStream/releases). The current release is **1.0.0-beta.7**, built locally with Gradle and the Android SDK. Android 7.0 or newer is required. No GitHub Actions build is used.
+Download the APK from [Releases](https://github.com/OnlyTripleSix/HexStream/releases). The current release is **1.0.0-beta.9**, built locally with Gradle and the Android SDK. Android 7.0 or newer is required. No GitHub Actions build is used.
 
-Beta.7 adds Xtra 2.60.9's Helix timeout fix and German translation improvements. Fullscreen chat can sit transparently over the full-size game or beside it, on either side, with typing/replies/emotes. That work adapts [ThystTV by tzii and its contributors](https://github.com/tzii/ThystTV). The explained settings, stable category browsing and full supplied-tag rules stay intact. [Settings guide →](docs/SETTINGS.md) · [What changed →](CHANGELOG.md)
+Beta.9 brings in Xtra 2.60.10's download fixes and the channel tools described below. Fullscreen chat can sit transparently over the full-size game or beside it, on either side, with typing/replies/emotes. That work adapts [ThystTV by tzii and its contributors](https://github.com/tzii/ThystTV). The explained settings, stable category browsing and full supplied-tag rules stay intact. [Settings guide →](docs/SETTINGS.md) · [What changed →](CHANGELOG.md)
 
 Fresh installations start with **empty filter lists**. Language restrictions and emoji blocking are off; you choose the rules. Upgrading preserves existing saved rules, accounts and proxy settings. See [installation and builds](docs/BUILDING.md) for signing and package details.
 
@@ -31,7 +31,7 @@ Fresh installations start with **empty filter lists**. Language restrictions and
 
 The app and extension are separate installations with explicit compatible-list export/import. There is no automatic phone/browser sync. Android's language identification and emoji controls differ from the extension's character presets, and advanced regex dialects can differ. [Browser filtering and migration details →](https://github.com/OnlyTripleSix/HexStream-Filter/blob/main/docs/FILTERING.md#using-it-with-hexstream-for-android)
 
-> **Beta.8.4 test candidate:** independent channel alerts, existing whisper conversations with older-message paging, automatically detected channel moderation controls and live clip creation. The bell now handles username-only channel pages. Background whisper alerts remain unfinished; these additions still need live-account checks before release. [Setup, coverage and limits →](docs/CHANNEL-TOOLS.md)
+> **Beta.9:** Xtra's latest download fixes, independent channel alerts, existing whisper conversations with older-message paging, automatically detected channel moderation controls and live clip creation. The bell also handles username-only channel pages. Background whisper alerts remain unfinished. [Setup, permissions and limits →](docs/CHANNEL-TOOLS.md)
 
 ## What HexStream adds
 

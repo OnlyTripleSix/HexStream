@@ -26,6 +26,6 @@ For a useful report, provide the app version, Android/device model, reproduction
 
 For a sensitive vulnerability, avoid putting exploitable details or credentials in a public issue. Use GitHub’s private vulnerability reporting when available on the repository. Never attach a real account token as a reproduction aid.
 
-## Channel tools candidate
+## Channel tools
 
 Optional whisper history loads from Twitch using the active account's existing web login. The returned owner and conversation participants are verified before importing data. Its local cache is encrypted with a device-bound Android Keystore key in a separate private store, bounded to 500 messages per account and excluded from app settings/filter exports. Clearing the cache does not delete Twitch conversations. History reads do not mark messages read or archive threads. Receiving uses the active account while the app is visible; background whisper alerts are not implemented. Native moderator, whisper and clip requests have logging interceptors and automatic mutation retries disabled. Browser Mod View, polls and clip editing use the browser’s own login, with no token or cookie handoff. See [channel tools](CHANNEL-TOOLS.md) for the history and API limitations.

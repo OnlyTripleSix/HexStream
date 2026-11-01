@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0-beta.9
+
+- Integrate Xtra 2.60.10 download fixes by crackededed. Apply progress updates only while the downloads screen is started, retain a snapshot for each active download, and keep callbacks from touching a destroyed view.
+- Keep only the latest completed stream-segment URL as the resume bookmark across all three network transports. Repair old bookmark metadata without deleting saved downloads or their byte/progress records.
+- Update Android Gradle Plugin to 9.5.0 and KSP to 2.3.13, matching upstream; preserve the Gradle 9.8.2 wrapper.
+- Include the previously tested channel tools: independent alerts without following, account-bound whisper history with older-message paging, detected moderator controls and guarded clip creation. See [setup and limits](docs/CHANNEL-TOOLS.md); background whisper alerts remain unfinished, and full Mod View/polls/predictions use Twitch browser panels.
+- Keep the username-only channel bell fix and all existing pagination, full-tag filtering, account, playback, proxy, reward, gesture and transparent-chat behavior.
+
 ## 1.0.0-beta.8.4 (channel alert test candidate)
 
 - Fix an inert notification bell on channel pages opened with only a username. Use the broadcaster ID returned by channel metadata, then load the saved alert state.

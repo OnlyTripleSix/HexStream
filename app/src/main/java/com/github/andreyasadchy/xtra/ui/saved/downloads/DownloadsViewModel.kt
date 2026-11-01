@@ -15,6 +15,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
 import com.github.andreyasadchy.xtra.XtraApp
+import com.github.andreyasadchy.xtra.util.DownloadProgressUpdates
 import com.github.andreyasadchy.xtra.model.ui.OfflineVideo
 import com.github.andreyasadchy.xtra.repository.OfflineVideosRepository
 import com.github.andreyasadchy.xtra.util.m3u8.PlaylistUtils
@@ -32,6 +33,7 @@ class DownloadsViewModel(
 ) : ViewModel() {
 
     var selectedVideo: OfflineVideo? = null
+    val videoDownloadProgress = DownloadProgressUpdates()
     private val videosInUse = mutableListOf<OfflineVideo>()
 
     val flow = Pager(

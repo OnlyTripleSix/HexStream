@@ -13,4 +13,10 @@ class DownloadProgress(
     var liveCommentsArrayStarted: Boolean = false,
     var isLive: Boolean = false,
     var lastSaved: Long = 0,
-)
+) {
+    /** A resume bookmark describes the last completed segment, never the full download history. */
+    fun recordMediaSegment(byteCount: Long, url: String?) {
+        bytes += byteCount
+        lastSegmentUrl = url
+    }
+}
