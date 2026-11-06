@@ -634,7 +634,6 @@ class MainActivity : AppCompatActivity() {
     }
     fun handlePrototypeMenu(item: android.view.MenuItem): Boolean = when (item.itemId) {
         R.id.hex_whispers -> { startActivity(Intent(this, WhispersActivity::class.java)); true }
-        R.id.hex_mod_tools -> { startActivity(Intent(this, ModeratorActivity::class.java)); true }
         R.id.prototype_accounts -> { showAccounts(); true }
         R.id.prototype_blocked_tags -> { showBlockedTags(); true }
         else -> false

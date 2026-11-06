@@ -20,7 +20,7 @@ object WhisperHistorySession {
         }
         return configured.toMap()
     }
-    private fun headers(context: Context): Map<String, String> {
+    internal fun headers(context: Context): Map<String, String> {
         val verified = runCatching {
             val json = JSONObject(context.tokenPrefs().getString(VERIFIED_HEADERS, null).orEmpty())
             json.keys().asSequence().associateWith { json.optString(it) }

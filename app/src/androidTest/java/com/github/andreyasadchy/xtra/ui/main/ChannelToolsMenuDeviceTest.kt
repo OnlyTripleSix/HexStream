@@ -24,17 +24,17 @@ class ChannelToolsMenuDeviceTest {
             preferences.edit().putBoolean("hex_whispers", false).putBoolean("hex_moderator_tools", true).commit()
             ChannelToolsMenus.configure(toolbar.menu, preferences)
             val whisper = toolbar.menu.findItem(R.id.hex_whispers)
-            val moderator = toolbar.menu.findItem(R.id.hex_mod_tools)
-            assertFalse(whisper.isVisible); assertTrue(moderator.isVisible)
+            assertFalse((0 until toolbar.menu.size()).any { toolbar.menu.getItem(it).title == context.getString(R.string.hex_mod_title) })
+            assertFalse(whisper.isVisible)
 
             preferences.edit().putBoolean("hex_whispers", true).putBoolean("hex_moderator_tools", false).commit()
             ChannelToolsMenus.refresh(root, preferences)
-            assertTrue(whisper.isVisible); assertFalse(moderator.isVisible)
+            assertTrue(whisper.isVisible)
             assertSame(toolbar, nested.getChildAt(0)); assertSame(whisper, toolbar.menu.findItem(R.id.hex_whispers))
 
             preferences.edit().putBoolean("hex_whispers", false).putBoolean("hex_moderator_tools", true).commit()
             ChannelToolsMenus.refresh(root, preferences)
-            assertFalse(whisper.isVisible); assertTrue(moderator.isVisible)
+            assertFalse(whisper.isVisible)
         } } finally { preferences.edit().clear().commit() }
     }
 }

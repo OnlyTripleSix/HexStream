@@ -10,7 +10,6 @@ import com.github.andreyasadchy.xtra.R
 internal object ChannelToolsMenus {
     fun configure(menu: Menu, preferences: SharedPreferences) {
         menu.findItem(R.id.hex_whispers)?.isVisible = preferences.getBoolean("hex_whispers", false)
-        menu.findItem(R.id.hex_mod_tools)?.isVisible = preferences.getBoolean("hex_moderator_tools", true)
     }
 
     /** Apply settings on return without replacing fragments, paging sessions or the player. */

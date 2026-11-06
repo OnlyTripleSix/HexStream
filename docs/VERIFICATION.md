@@ -1,5 +1,15 @@
 # Verification and known limits
 
+## In-channel moderation: 1.0.0-beta.10
+
+All **206 JVM tests /31 suites** passed, with zero failures/errors/skips. New role checks cover authenticated owner/channel identity, missing role data, revoked access before a write, older channel-list grants, account changes and sanitized failures. URL checks keep poll/full-control navigation on the selected Twitch channel and trusted login hosts. Existing pagination, full-tag/language rules, global proxies, account handling, rewards, low-delay playback, whispers and clips remain covered.
+
+All **28 account-free physical-device tests** passed on a Samsung Galaxy S21 Ultra in the isolated QA package. The new window regression confirms that an urgent Ban confirmation is the active window above its channel sheet and disappears when the sheet closes. The message layout includes direct Ban, Timeout and Delete actions above history. The previous menu, settings, whisper, account/database, filter, proxy and chat-overlay checks passed too. The signed-in follow-list fixture remains excluded. QA packages were removed after the run. No real moderation, message, follow or poll was submitted by a fixture.
+
+Android lint reports **zero errors and 24 reviewed warnings**, covering available dependency/build-plugin updates and existing orientation/layout/resource/preference suggestions. No lint check was disabled. The signed optimized package is built locally with the existing certificate, package identity and empty defaults.
+
+An earlier signed candidate passed an in-place personal-phone update, preserving its UID and original install time. Manual checks confirmed the active account's moderator controls and direct message actions in the selected channel, with owned web-login verification before opening Twitch's in-app poll panel. The final signed package's smoke check is being completed. Hosted Twitch pages can require consent, verification or login and can change independently of the app. Live ban/timeout submission, poll creation, permission revocation on Twitch and broad device/font-scale coverage are outside the completed fixture checks.
+
 ## Xtra download fixes: 1.0.0-beta.9
 
 All **194 JVM tests /29 suites** passed, with zero failures/errors/skips. Six new regressions cover replay after a stopped screen, updates from multiple downloads, reuse of mutable service objects, a newer callback arriving during rendering, byte accounting, and 10,000 completed segments retaining just one resume URL. The prior pagination, filtering, accounts, proxies, playback, rewards, whisper and moderator request suites remain included.

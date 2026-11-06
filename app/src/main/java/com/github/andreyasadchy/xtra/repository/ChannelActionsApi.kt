@@ -12,7 +12,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 /** Account-bound requests. Never retry a mutation or pass private responses to network logs. */
-class ChannelActionsApi(client: OkHttpClient, val userId: String, private val headers: Map<String, String>, private val current: () -> Boolean) {
+class ChannelActionsApi(client: OkHttpClient, val userId: String, private val headers: Map<String, String>, private val roleFallback: (suspend (String) -> Boolean)? = null, private val current: () -> Boolean) {
     val client: OkHttpClient = client.newBuilder().apply {
         interceptors().clear()
         networkInterceptors().clear()
@@ -54,7 +54,7 @@ class ChannelActionsApi(client: OkHttpClient, val userId: String, private val he
         }
         response.use {
             checkCurrent()
-            if (!it.isSuccessful) throw ActionFailure(errorText(it.code))
+            if (!it.isSuccessful) throw ActionFailure(errorText(it.code), it.code)
             val text = it.body.string()
             return try { if (text.isBlank()) buildJsonObject {} else Json.parseToJsonElement(text).jsonObject }
             catch (_: IllegalArgumentException) { throw ActionFailure("Twitch returned an unreadable response. Check the current state before repeating an action.") }
@@ -72,9 +72,12 @@ class ChannelActionsApi(client: OkHttpClient, val userId: String, private val he
     })
     suspend fun canModerate(channelId: String): Boolean {
         checkCurrent()
-        val result = ModeratorPermission.check(userId, channelId) { after ->
+        val result = try { ModeratorPermission.check(userId, channelId) { after ->
             val result = moderated(after)
             ModeratorPermission.Page(result.rows().mapNotNull { (it as? JsonObject)?.text("broadcaster_id")?.takeIf { id -> id.isNotBlank() } }.toSet(), result.cursor())
+        } } catch (error: ActionFailure) {
+            if (error.statusCode !in setOf(401, 403) || roleFallback == null) throw error
+            roleFallback.invoke(channelId)
         }
         checkCurrent()
         return result
@@ -173,7 +176,7 @@ private class SingleSubmissionBody(private val body: RequestBody) : RequestBody(
     override fun isOneShot() = true
 }
 
-class ActionFailure(message: String) : IOException(message)
+class ActionFailure(message: String, val statusCode: Int? = null) : IOException(message)
 fun JsonObject.rows(): JsonArray = this["data"] as? JsonArray ?: JsonArray(emptyList())
 fun JsonObject.text(key: String): String = (this[key] as? JsonPrimitive)?.contentOrNull.orEmpty()
 fun JsonObject.cursor(): String? = (this["pagination"] as? JsonObject)?.text("cursor")?.takeIf { it.isNotBlank() }

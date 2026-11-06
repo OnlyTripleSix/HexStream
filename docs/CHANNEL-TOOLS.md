@@ -1,6 +1,6 @@
 # Channel alerts, whispers, moderation and clips
 
-These features are included in **beta.9** after the local beta.8 candidates. Native requests still depend on Twitch permissions and your role in the selected channel; the limits and tested coverage below remain explicit.
+These features are included in **beta.10**, with moderation controls kept over the current channel. Native requests still depend on Twitch permissions and your role in the selected channel; the limits and tested coverage below remain explicit.
 
 ## Get connected
 
@@ -43,13 +43,17 @@ Twitch's public API supplies sending and incoming EventSub events, without a his
 
 ## Moderator tools
 
-The player and chat-message menus automatically check whether your active account moderates the current channel or owns it. Verified accounts see **Moderator tools** in the live-player menu and **Moderate user / message** on a chat message. Those screens stay bound to that broadcaster; the channel is not editable.
+Open the live channel's chat. **Mod tools** appears there when Twitch confirms your role in that channel. The browsing/player overflow menus have no separate moderator dashboard.
 
-The browsing menu's **Moderator tools** dashboard lists channels returned by Twitch and your own channel. Free-form channel entry is removed. Each selected channel is verified again before its controls open. **Settings → Chat → Show detected moderator controls** optionally hides this UI; it grants no channel role. Missing permissions, an unavailable role lookup or a removed role prevent native actions. Reconnect the active account to grant the moderator-channel lookup permission if needed.
+For an urgent action, **tap the message → Ban → Ban** to confirm. The username and channel are already filled in. **Timeout…** offers one minute, five minutes, ten minutes, thirty minutes, one hour, one day, or a custom duration such as `30s`, `10m`, `2h` or `1d`. **Delete** targets the selected message. These controls appear above the message history. The confirmation names the action, user and channel.
+
+**Mod tools** opens a sheet over the player for polls, chat modes, announcements, AutoMod, unban requests and Shield mode. Close the sheet to return to the same channel. The current channel cannot be changed inside it. **Settings → Chat → Show detected moderator controls** controls visibility.
+
+A saved API grant may predate Twitch's channel-list permission. If that lookup rejects authentication, HexStream can verify the same active account's own role using its existing web login. Both returned account and broadcaster ID must match. An explicit non-moderator response stays denied. Service failures surface **Mod setup**, which explains reconnection. Successful display checks are cached for up to 15 seconds; each native write verifies the current role again.
 
 | Native panel | Available actions |
 | --- | --- |
-| People | Permanent ban, timeout in seconds, unban/remove timeout, and warning with a reason. |
+| People | Permanent ban, timeout presets or custom durations, unban/remove timeout, and warning with a reason. |
 | Chat controls | Read current modes; change slow, followers-only, subscribers-only, emote-only and unique-chat modes; send an announcement; clear chat. |
 | AutoMod | Listen for new held messages and allow/deny them; inspect category settings; set overall level 0–4; view/add/remove blocked terms. |
 | Unban requests | Load pending requests and approve/deny with an optional resolution note. |
@@ -57,15 +61,15 @@ The browsing menu's **Moderator tools** dashboard lists channels returned by Twi
 
 Every native moderation write verifies the active account's role again immediately before submission, even if the controls were previously visible. Another channel's role does not grant access. AutoMod events from a different broadcaster are ignored. Every mutation requires confirmation. Timeouts are restricted to 1 second–14 days, warnings require a reason, and chat settings are patched one mode at a time. A failed or uncertain request is not silently repeated. Permissions, message age, queue races and channel restrictions remain Twitch's authority; an action accepted by the request fixture is not proof it will succeed for every real account.
 
-The native AutoMod queue starts when you tap **Listen for new held messages**. It contains at most 100 newly held items, removes items handled by another moderator, and stops when you leave the foreground. Start listening again after returning. It does not backfill messages already held before connecting. Use **Open full AutoMod queue in Twitch Mod View** for older items, private-term context or gaps.
+The native AutoMod queue starts when you tap **Listen for new held messages**. It contains at most 100 newly held items, removes items handled by another moderator, and stops when you leave the foreground. Start listening again after returning. It does not backfill messages already held before connecting. Use **Full AutoMod queue** for older items, private-term context or gaps.
 
 Setting an overall AutoMod level replaces custom category levels; the confirmation makes this explicit. Blocked-term and unban lists have load-more controls with duplicate-page guards. Refresh their list after changing an item to obtain current server state.
 
 ### Polls, predictions and everything else
 
-Use **Polls → open Twitch poll manager** for the dedicated poll panel, or **Open Twitch Mod View** for polls, predictions and the full moderator workspace. These are explicit browser links, not native panels. Twitch's public poll/prediction management APIs use broadcaster authorization, so a moderator's token is not substituted or treated as the broadcaster's. [Twitch API permissions](https://dev.twitch.tv/docs/api/reference/#create-poll), [Twitch poll controls](https://help.twitch.tv/s/article/how-to-use-polls?language=en_US).
+Use **Mod tools → Polls** for Twitch's moderator-capable poll manager inside an in-app sheet over the channel. Twitch's public poll API requires the broadcaster's own authorization, so moderator access uses Twitch's own web controls. The channel stays fixed. [Twitch poll API permissions](https://dev.twitch.tv/docs/api/reference/#create-poll).
 
-**Your browser has its own Twitch login.** Check the account shown there; switching HexStream accounts does not switch browser cookies. HexStream neither copies cookies into those panels nor forwards its login credentials. Browser panels are opened from a verified channel context; their own Twitch login and permissions remain separate.
+On WebView versions with profile support, each HexStream account gets its own isolated in-app Twitch profile. Before reusing the saved web login, HexStream verifies that it belongs to the active account and has the current channel role. The login is supplied only to Twitch in that profile over HTTPS. If reuse is unavailable or Twitch requests verification, sign in or complete the check inside the panel and confirm the account shown. The external browser's cookies are separate. **More Twitch controls** and **Full AutoMod queue** use the same in-app panel for the broader Twitch workspace.
 
 ## Create a clip from someone else's live stream
 
@@ -81,6 +85,6 @@ Use an account and channel where you have permission. The automated fixtures nev
 
 - Save a non-followed channel's alert; reopen its channel page, then switch accounts and confirm their alert lists remain separate.
 - Reconnect with Both login if requested. Enable Whispers, open an existing thread, load older pages, refresh and background/resume. Check that drafts survive loading and accounts stay separate. Confirm disabled Whispers disconnects and hides its menu. Send/receive a test message only with an intentional recipient.
-- Open a channel you moderate; inspect modes and new AutoMod holds. Test timeout/unban and one warning only on an agreed test account. Check unban requests and browser poll/Mod View access.
+- Open a channel you moderate; inspect modes and new AutoMod holds. Test timeout/unban and one warning only on an agreed test account. Check unban requests and the in-app poll panel. Close each sheet to return to the same stream.
 - Capture one clip from a permitted non-followed live channel; rotate while waiting, open the editor, and check that only one request was made.
 - Recheck playback, transparent/docked chat, gestures, category back navigation, global filters and proxy settings.

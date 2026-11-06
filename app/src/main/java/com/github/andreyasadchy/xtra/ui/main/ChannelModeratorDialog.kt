@@ -6,22 +6,38 @@ import com.github.andreyasadchy.xtra.repository.*
 import com.github.andreyasadchy.xtra.util.*
 import kotlinx.coroutines.Job
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.withResumed
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.*
 
-class ModeratorActivity : ChannelActionActivity() {
-    private val contextBound get() = !intent.getStringExtra("channel_id").isNullOrBlank()
+class ChannelModeratorDialog : ChannelActionDialog() {
     private var channelId = ""
     private var channelLogin = ""
     private var queueJob: Job? = null
     private var queueStatusView: android.widget.TextView? = null
     private val held = linkedMapOf<String, JsonObject>()
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        if (!prefs().getBoolean("hex_moderator_tools", true)) { clear("Moderator tools are hidden in Settings → Chat"); return }
-        channelId = intent.getStringExtra("channel_id") ?: savedInstanceState?.getString("channel_id").orEmpty()
-        channelLogin = savedInstanceState?.getString("channel_login") ?: intent.getStringExtra("channel_login").orEmpty()
-        if (channelId.isNotBlank()) verifyAndOpen(channelId) else channels()
+    companion object {
+        fun newInstance(channelId: String, channelLogin: String? = null, targetId: String? = null, targetLogin: String? = null, messageId: String? = null, quickAction: String? = null) = ChannelModeratorDialog().apply {
+            arguments = Bundle().apply {
+                putString("channel_id", channelId)
+                putString("channel_login", channelLogin)
+                putString("target_id", targetId)
+                putString("target_login", targetLogin)
+                putString("message_id", messageId)
+                putString("quick_action", quickAction)
+            }
+        }
+    }
+    override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        this.savedInstanceState = savedInstanceState
+        if (!requireContext().prefs().getBoolean("hex_moderator_tools", true)) { clear("Moderator tools are hidden in Settings → Chat"); return }
+        channelId = requireArguments().getString("channel_id") ?: savedInstanceState?.getString("channel_id").orEmpty()
+        channelLogin = savedInstanceState?.getString("channel_login") ?: requireArguments().getString("channel_login").orEmpty()
+        if (channelId.isNotBlank()) viewLifecycleOwner.lifecycleScope.launch {
+            awaitIdle()
+            verifyAndOpen(channelId)
+        } else clear("Channel details are still loading. Close and reopen the controls.")
     }
     override fun onSaveInstanceState(outState: Bundle) { outState.putString("channel_id", channelId); outState.putString("channel_login", channelLogin); super.onSaveInstanceState(outState) }
     override fun onStop() {
@@ -29,14 +45,28 @@ class ModeratorActivity : ChannelActionActivity() {
         queueStatusView?.text = getString(R.string.hex_tools_queue_paused)
         super.onStop()
     }
-    private fun channels() {
-        queueJob?.cancel(); channelId = ""; channelLogin = ""; loadedPages.clear(); loadedItems.clear(); clear("Your moderator channels")
-        label("Twitch identifies the channels your active account moderates. Choose from that verified list, or open your own channel. Channel tools opened from a stream stay tied to that stream.")
-        api?.let { session -> button("My own channel") { verifyAndOpen(session.userId) } }
-        button("Load channels I moderate") { loadChannels() }
-    }
+    private var savedInstanceState: Bundle? = null
     private fun verifyAndOpen(targetId: String) {
-        clear("Checking channel permissions…")
+        val action = requireArguments().getString("quick_action")
+        if (action != null && savedInstanceState == null && api != null) {
+            savedInstanceState = Bundle()
+            // The message panel already verified visibility. Confirm immediately, then recheck on submit.
+            people()
+            val username = requireArguments().getString("target_login").orEmpty()
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewLifecycleOwner.lifecycle.withResumed {
+                    when (action) {
+                        "ban" -> personAction("Ban", username, "", null)
+                        "timeout" -> chooseTimeout(username, "")
+                        "delete" -> deleteSelectedMessage()
+                    }
+                }
+            }
+            return
+        }
+        clear("Channel controls")
+        button("Retry access check") { verifyAndOpen(targetId) }
+        button("Moderator setup") { ChannelActionSession.showModeratorSetup(requireContext(), "Check the active account and its Twitch permissions.") }
         task { session ->
             session.requireModerator(targetId)
             val channel = session.userById(targetId)
@@ -47,66 +77,97 @@ class ModeratorActivity : ChannelActionActivity() {
     }
     private val loadedPages = mutableSetOf<String>()
     private val loadedItems = mutableSetOf<String>()
-    private fun loadChannels(after: String? = null) {
-        task { session ->
-            if ("channels:$after" in loadedPages) return@task
-            val result = session.moderated(after)
-            loadedPages += "channels:$after"
-            if (after == null && result.rows().isEmpty()) label("Twitch returned no channels you moderate. Your own channel is available above.")
-            result.rows().forEach { row -> val item = row.jsonObject
-                if (loadedItems.add(item.text("broadcaster_id"))) button(item.text("broadcaster_name")) {
-                    verifyAndOpen(item.text("broadcaster_id"))
-                }
-            }
-            result.cursor()?.takeUnless { "channels:$it" in loadedPages }?.let { next -> button("Load more channels") { loadChannels(next) } }
-        }
-    }
     private fun home() {
         queueJob?.cancel(); clear("Moderator tools • ${channelLogin.ifBlank { channelId }}")
-        label("Native tools use your active HexStream account. Destructive actions ask first.")
-        button("People • ban, timeout, unban, warn") { people() }
-        intent.getStringExtra("message_id")?.takeIf { it.isNotBlank() }?.let { id ->
+        label("Changes use the account shown above. You'll confirm before submitting.")
+        button("Ban or timeout a user") { people() }
+        button("Polls") { openPolls() }
+        requireArguments().getString("message_id")?.takeIf { it.isNotBlank() }?.let { id ->
             button("Delete selected chat message") { confirm("Delete this message?", "This removes the selected message from this channel's chat.") { task(true) { it.deleteMessages(channelId, id) } } }
         }
         button("Chat modes and announcements") { chat() }
         button("AutoMod • live queue, level and blocked terms") { automod() }
         button("Unban requests") { unbans() }
         button("Shield mode") { shield() }
-        label("Full Twitch tools", 20f)
-        label("Polls, predictions and the complete moderator workspace open Twitch in your browser. Twitch reserves some API actions for broadcasters. The browser uses its own Twitch login: check the account shown there.")
-        button("Open Twitch Mod View • polls, predictions and more") { browserModView() }
-        button("Polls • open Twitch poll manager") { browserModView(true) }
-        if (!contextBound) button("Your moderated channels") { channels() }
+        button("More Twitch controls") { TwitchPollDialog.newInstance(channelId, channelLogin, true).show(childFragmentManager, "twitchControls") }
     }
-    private fun browserModView(poll: Boolean = false) {
-        task { session -> session.requireModerator(channelId); openBrowserPanel(poll) }
+    private fun openPolls() {
+        task { session ->
+            session.requireModerator(channelId)
+            TwitchPollDialog.newInstance(channelId, channelLogin).show(childFragmentManager, "channelPolls")
+        }
     }
-    private fun openBrowserPanel(poll: Boolean) {
-        require(channelLogin.matches(Regex("[A-Za-z0-9_]{1,25}"))) { "Open a channel by username first." }
-        openTwitch(if (poll) "https://www.twitch.tv/popout/$channelLogin/poll" else "https://www.twitch.tv/moderator/$channelLogin")
+    private fun deleteSelectedMessage() {
+        val id = requireArguments().getString("message_id")?.takeIf { it.isNotBlank() } ?: return
+        confirm("Delete this message?", "This removes only the selected message from $channelLogin's chat.", "Delete message") {
+            task(true) { it.deleteMessages(channelId, id) }
+        }
     }
     private fun people() {
-        clear("People • $channelLogin")
-        val target = input("Twitch username", intent.getStringExtra("target_login").orEmpty())
-        val reason = input("Reason • optional for a ban/timeout, required for a warning", multiline = true)
-        val seconds = input("Timeout in seconds • 600 = 10 minutes", "600", number = true)
-        listOf("Timeout", "Ban", "Unban / remove timeout", "Warn").forEach { kind -> button(kind) {
-            personAction(kind, target.text.toString().trim(), reason.text.toString().trim(), seconds.text.toString().toIntOrNull())
-        } }
-        button("Back to channel tools") { home() }
+        clear("Ban or timeout • $channelLogin")
+        val selected = requireArguments().getString("target_login").orEmpty()
+        val target = input("Twitch username", selected)
+        val reason = input("Reason (optional)", multiline = true)
+        button("Ban") { personAction("Ban", target.text.toString(), reason.text.toString(), null) }
+        button("Timeout…") { chooseTimeout(target.text.toString(), reason.text.toString()) }
+        if (!requireArguments().getString("message_id").isNullOrBlank()) button("Delete selected message") { deleteSelectedMessage() }
+        button("Unban / remove timeout") { personAction("Unban", target.text.toString(), reason.text.toString(), null) }
+        button("Warn (reason required)") { personAction("Warn", target.text.toString(), reason.text.toString(), null) }
+        button("Channel controls") { home() }
     }
-    private fun personAction(kind: String, username: String, text: String, duration: Int?) {
-        confirm("$kind $username?", "Channel: $channelLogin\n${if (kind == "Timeout") "Duration: $duration seconds\n" else ""}Reason: ${text.ifBlank { "None" }}") {
+    private fun chooseTimeout(username: String, reason: String) {
+        val durations = arrayOf("1 minute", "5 minutes", "10 minutes", "30 minutes", "1 hour", "1 day", "Custom duration…")
+        val seconds = intArrayOf(60, 300, 600, 1800, 3600, 86400)
+        val choice = requireContext().getAlertDialogBuilder().setTitle("Timeout $username")
+            .setItems(durations) { _, which ->
+                if (which < seconds.size) personAction("Timeout", username, reason, seconds[which])
+                else {
+                    val field = android.widget.EditText(requireContext()).apply {
+                        hint = "30s, 10m, 2h or 1d"
+                        isSingleLine = true
+                    }
+                    val dialog = requireContext().getAlertDialogBuilder().setTitle("Custom timeout")
+                        .setView(field).setNegativeButton("Cancel", null).setPositiveButton("Continue", null).create()
+                    dialog.setOnShowListener {
+                        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                            val duration = com.github.andreyasadchy.xtra.ui.chat.TimeoutDuration.helixSeconds(field.text.toString())
+                            if (duration == null) field.error = "Use 1 second to 14 days, for example 10m."
+                            else { dialog.dismiss(); personAction("Timeout", username, reason, duration) }
+                        }
+                    }
+                    showAlert(dialog)
+                }
+            }.setNegativeButton("Cancel", null).create()
+        showAlert(choice)
+    }
+    private fun personAction(kind: String, enteredUsername: String, text: String, duration: Int?) {
+        val username = enteredUsername.trim().removePrefix("@")
+        if (!username.matches(Regex("[A-Za-z0-9_]{1,25}"))) { notice.setText(R.string.hex_mod_enter_user); return }
+        if (kind == "Warn" && text.isBlank()) { notice.setText(R.string.hex_mod_warn_reason); return }
+        val length = duration?.let(::durationLabel)
+        confirm("$kind $username?", "Channel: $channelLogin\n${length?.let { "Duration: $it\n" }.orEmpty()}${text.takeIf { it.isNotBlank() }?.let { "Reason: $it" }.orEmpty()}", kind) {
             task(true) { session ->
-                val id = session.user(username).text("id")
+                val selectedLogin = requireArguments().getString("target_login")
+                val selectedId = requireArguments().getString("target_id")
+                val id = selectedId?.takeIf { username.equals(selectedLogin, true) && it.matches(Regex("[0-9]+")) }
+                    ?: session.user(username).text("id")
                 when (kind) {
-                    "Ban" -> session.ban(channelId, id, text)
-                    "Timeout" -> session.ban(channelId, id, text, duration ?: throw IllegalArgumentException("Enter a timeout of 1–1209600 seconds."))
-                    "Unban / remove timeout" -> session.unban(channelId, id)
-                    "Warn" -> session.warn(channelId, id, text)
+                    "Ban" -> session.ban(channelId, id, text.trim())
+                    "Timeout" -> session.ban(channelId, id, text.trim(), requireNotNull(duration))
+                    "Unban" -> session.unban(channelId, id)
+                    "Warn" -> session.warn(channelId, id, text.trim())
                 }
             }
         }
+    }
+    private fun durationLabel(seconds: Int): String {
+        val (amount, unit) = when {
+            seconds % 86400 == 0 -> seconds / 86400 to "day"
+            seconds % 3600 == 0 -> seconds / 3600 to "hour"
+            seconds % 60 == 0 -> seconds / 60 to "minute"
+            else -> seconds to "second"
+        }
+        return "$amount $unit${if (amount == 1) "" else "s"}"
     }
     private fun chat() {
         clear("Chat controls • $channelLogin")
@@ -116,7 +177,7 @@ class ModeratorActivity : ChannelActionActivity() {
         val age = input("Follower age in minutes • 0 lets new followers chat", "0", number = true)
         listOf("slow_mode" to "Slow mode", "follower_mode" to "Followers only", "subscriber_mode" to "Subscribers only", "emote_mode" to "Emotes only", "unique_chat_mode" to "Unique chat").forEach { (key, title) ->
             button("$title • change") {
-                getAlertDialogBuilder().setTitle(title).setItems(arrayOf("Enable", "Disable")) { _, which ->
+                requireContext().getAlertDialogBuilder().setTitle(title).setItems(arrayOf("Enable", "Disable")) { _, which ->
                     val duration = when (key) { "slow_mode" -> slow.text.toString().toIntOrNull(); "follower_mode" -> age.text.toString().toIntOrNull(); else -> null }
                     confirm("${if (which == 0) "Enable" else "Disable"} $title?", "This changes $channelLogin's chat settings.") { task(true) { it.chatSetting(channelId, key, which == 0, duration) } }
                 }.show()
@@ -146,7 +207,7 @@ class ModeratorActivity : ChannelActionActivity() {
         label("The native queue receives new held messages while this page is listening. Use Twitch Mod View for messages held before connecting, private-term context, or gaps while disconnected.")
         val queueStatus = label("Live queue paused")
         queueStatusView = queueStatus
-        val queue = android.widget.LinearLayout(this).apply { orientation = android.widget.LinearLayout.VERTICAL }; body.addView(queue)
+        val queue = android.widget.LinearLayout(requireContext()).apply { orientation = android.widget.LinearLayout.VERTICAL }; body.addView(queue)
         button("Listen for new held messages") {
             val session = api ?: return@button
             queueJob?.cancel(); held.clear(); renderHeld(queue)
@@ -161,13 +222,13 @@ class ModeratorActivity : ChannelActionActivity() {
                 catch (_: Exception) { queueStatus.text = getString(R.string.hex_tools_queue_failed) }
             }
         }
-        button("Open full AutoMod queue in Twitch Mod View") { browserModView() }
+        button("Full AutoMod queue") { TwitchPollDialog.newInstance(channelId, channelLogin, true).show(childFragmentManager, "fullAutomod") }
         button("View AutoMod settings") { task { session ->
             val data = session.automodSettings(channelId).rows().firstOrNull()?.jsonObject
             label(data?.entries?.filterNot { it.key.endsWith("_id") }?.joinToString("\n") { "${it.key.replace('_', ' ')}: ${it.value}" } ?: "No settings returned")
         } }
         button("Set AutoMod overall level") {
-            getAlertDialogBuilder().setTitle("AutoMod level").setItems(arrayOf("0 • off", "1 • low", "2 • medium", "3 • high", "4 • maximum")) { _, level ->
+            requireContext().getAlertDialogBuilder().setTitle("AutoMod level").setItems(arrayOf("0 • off", "1 • low", "2 • medium", "3 • high", "4 • maximum")) { _, level ->
                 confirm("Set AutoMod to $level?", "This replaces the channel's custom category levels with the overall level.") { task(true) { it.automodLevel(channelId, level) } }
             }.show()
         }
@@ -181,11 +242,11 @@ class ModeratorActivity : ChannelActionActivity() {
         val displayed = (0 until queue.childCount).map { queue.getChildAt(it).tag }.toSet()
         held.forEach { (id, event) ->
             if (id in displayed) return@forEach
-            val card = android.widget.LinearLayout(this).apply { orientation = android.widget.LinearLayout.VERTICAL; tag = id }
+            val card = android.widget.LinearLayout(requireContext()).apply { orientation = android.widget.LinearLayout.VERTICAL; tag = id }
             queue.addView(card)
             val text = event.heldMessageText()
-            card.addView(android.widget.TextView(this).apply { this.text = getString(R.string.hex_tools_held_message, event.text("user_name"), text); setPadding(dp(4), dp(12), dp(4), dp(8)) })
-            listOf(true, false).forEach { allow -> card.addView(android.widget.Button(this).apply {
+            card.addView(android.widget.TextView(requireContext()).apply { this.text = getString(R.string.hex_tools_held_message, event.text("user_name"), text); setPadding(dp(4), dp(12), dp(4), dp(8)) })
+            listOf(true, false).forEach { allow -> card.addView(android.widget.Button(requireContext()).apply {
                 this.text = if (allow) "Allow message" else "Deny message"; isAllCaps = false
                 setOnClickListener { if (!busy) confirm(if (allow) "Allow this message?" else "Deny this message?", text) { task(true) { it.automodMessage(channelId, id, allow); held.remove(id); renderHeld(queue) } } }
             }) }
@@ -201,8 +262,11 @@ class ModeratorActivity : ChannelActionActivity() {
     }
     private fun loadTerms(after: String? = null) {
         task { session ->
-            if ("terms:$after" in loadedPages) return@task
-            val result = session.terms(channelId, after); loadedPages += "terms:$after"
+            if ("terms:$after" in loadedPages) {
+                return@task
+            }
+            val result = session.terms(channelId, after)
+            loadedPages += "terms:$after"
             if (result.rows().isEmpty()) label("No blocked terms returned.")
             result.rows().forEach { item -> val row = item.jsonObject
                 if (loadedItems.add(row.text("id"))) button("Remove: ${row.text("text")}") { confirm("Remove blocked term?", row.text("text")) { task(true) { it.removeTerm(channelId, row.text("id")) } } }
@@ -219,7 +283,9 @@ class ModeratorActivity : ChannelActionActivity() {
     }
     private fun loadUnbans(resolution: android.widget.EditText, after: String? = null) {
         task { session ->
-            if ("unbans:$after" in loadedPages) return@task
+            if ("unbans:$after" in loadedPages) {
+                return@task
+            }
             val result = session.unbanRequests(channelId, after); loadedPages += "unbans:$after"
             if (result.rows().isEmpty()) label("No pending requests returned.")
             result.rows().forEach { item -> val row = item.jsonObject

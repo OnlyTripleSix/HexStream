@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0-beta.10
+
+- Remove the separate moderator dashboard from browsing/player overflow menus. Keep controls in live chat and sheets over the current player.
+- Put Ban, Timeout and Delete above a selected message’s history. Fill in the target, label confirmations clearly and offer readable timeout presets plus custom duration suffixes.
+- Explain failed role checks through Mod setup. Older API grants can fall back to the active web account’s own channel role, with owner/channel validation and fresh checks before every native write.
+- Keep Twitch’s moderator-capable poll manager and broader controls inside the channel. Supported WebView versions isolate each account’s panel and validate a saved web login before reuse.
+- Cache successful display checks briefly and retain in-flight native submissions across sheet view recreation.
+
 ## 1.0.0-beta.9
 
 - Integrate Xtra 2.60.10 download fixes by crackededed. Apply progress updates only while the downloads screen is started, retain a snapshot for each active download, and keep callbacks from touching a destroyed view.

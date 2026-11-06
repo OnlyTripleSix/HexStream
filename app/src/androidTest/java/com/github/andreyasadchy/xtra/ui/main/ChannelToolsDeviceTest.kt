@@ -28,24 +28,61 @@ class ChannelToolsDeviceTest {
             assertTrue(text(activity.window.decorView).any { it == "Whispers are off" })
         } } finally { instrumentation.runOnMainSync { activity.finish() }; context.prefs().edit().putBoolean("hex_whispers", before).commit() }
     }
-    @Test fun moderatorEntryOffersChannelSelectionWithoutFollowing() {
-        val context = context(); val before = context.prefs().getBoolean("hex_moderator_tools", true)
-        context.prefs().edit().putBoolean("hex_moderator_tools", true).commit()
-        val activity = instrumentation.startActivitySync(Intent(context, ModeratorActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        try { instrumentation.runOnMainSync {
-            val text = text(activity.window.decorView)
-            assertFalse(text.contains("Channel username")); assertTrue(text.contains("Load channels I moderate"))
-        } } finally { instrumentation.runOnMainSync { activity.finish() }; context.prefs().edit().putBoolean("hex_moderator_tools", before).commit() }
-    }
-    @Test fun unverifiedChannelContextHasNoActionsOrEditableChannelSelector() {
+    @Test fun selectedMessageProvidesDirectBanTimeoutAndDeleteButtons() {
         val context = context()
-        val activity = instrumentation.startActivitySync(Intent(context, ModeratorActivity::class.java).putExtra("channel_id", "123").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        try { instrumentation.runOnMainSync {
-            val values = text(activity.window.decorView)
-            assertFalse(values.contains("Channel username"))
-            assertFalse(values.contains("People • ban, timeout, unban, warn"))
-            assertFalse(values.contains("Switch channel"))
-        } } finally { instrumentation.runOnMainSync { activity.finish() } }
+        instrumentation.runOnMainSync {
+            val themed = androidx.appcompat.view.ContextThemeWrapper(context, com.github.andreyasadchy.xtra.R.style.DarkTheme)
+            val view = android.view.LayoutInflater.from(themed).inflate(com.github.andreyasadchy.xtra.R.layout.dialog_chat_message_click, null)
+            assertEquals("Ban", view.findViewById<TextView>(com.github.andreyasadchy.xtra.R.id.banUser).text.toString())
+            assertEquals("Timeout…", view.findViewById<TextView>(com.github.andreyasadchy.xtra.R.id.timeoutUser).text.toString())
+            assertEquals("Delete", view.findViewById<TextView>(com.github.andreyasadchy.xtra.R.id.deleteUserMessage).text.toString())
+            assertEquals(View.GONE, view.findViewById<View>(com.github.andreyasadchy.xtra.R.id.moderationGroup).visibility)
+        }
+    }
+    @Test fun unverifiedChannelSheetHasNoActionsOrEditableChannelSelector() {
+        val context = context()
+        val activity = instrumentation.startActivitySync(Intent(context, com.github.andreyasadchy.xtra.ui.settings.SettingsActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) as com.github.andreyasadchy.xtra.ui.settings.SettingsActivity
+        val sheet = ChannelModeratorDialog.newInstance("123", "fixture", "456", "fixture_user", quickAction = "ban")
+        try {
+            instrumentation.runOnMainSync { sheet.showNow(activity.supportFragmentManager, "moderatorFixture") }
+            instrumentation.waitForIdleSync()
+            instrumentation.runOnMainSync {
+                val values = text(sheet.requireView())
+                assertFalse(values.contains("Channel username"))
+                assertFalse(values.contains("Ban"))
+                assertTrue(values.any { it.contains("Connect your active account") || it.contains("Reconnect") })
+                assertEquals("123", sheet.requireArguments().getString("channel_id"))
+            }
+        } finally { instrumentation.runOnMainSync { sheet.dismissNow(); activity.finish() } }
+    }
+    @Test fun quickBanConfirmationAppearsAboveSheetAndClosesWithIt() {
+        val context = context()
+        val tokens = context.tokenPrefs()
+        val keys = listOf(C.USER_ID, C.USERNAME, C.TOKEN)
+        val before = keys.associateWith { tokens.getString(it, null) }
+        val whispers = context.prefs().getBoolean("hex_whispers", false)
+        val activity = instrumentation.startActivitySync(Intent(context, com.github.andreyasadchy.xtra.ui.settings.SettingsActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) as com.github.andreyasadchy.xtra.ui.settings.SettingsActivity
+        val sheet = ChannelModeratorDialog.newInstance("111111", "fixture_channel", "222222", "fixture_user", quickAction = "ban")
+        try {
+            context.prefs().edit().putBoolean("hex_whispers", false).commit()
+            tokens.edit().putString(C.USER_ID, "111111").putString(C.USERNAME, "Fixture").putString(C.TOKEN, "fixture").commit()
+            instrumentation.runOnMainSync {
+                activity.window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                sheet.showNow(activity.supportFragmentManager, "quickBanFixture")
+            }
+            val deadline = android.os.SystemClock.uptimeMillis() + 3000
+            fun confirmationVisible() = instrumentation.uiAutomation.rootInActiveWindow
+                ?.findAccessibilityNodeInfosByText("Ban fixture_user?")?.any { it.text?.toString() == "Ban fixture_user?" } == true
+            while (!confirmationVisible() && android.os.SystemClock.uptimeMillis() < deadline) android.os.SystemClock.sleep(40)
+            assertTrue("Confirmation must be the active window, above the channel sheet", confirmationVisible())
+            instrumentation.runOnMainSync { sheet.dismissNow() }
+            instrumentation.waitForIdleSync()
+            assertFalse("Closing the sheet must remove its pending confirmation", confirmationVisible())
+        } finally {
+            instrumentation.runOnMainSync { if (sheet.isAdded) sheet.dismissNow(); activity.finish() }
+            tokens.edit().apply { before.forEach { (key, value) -> putString(key, value) } }.commit()
+            context.prefs().edit().putBoolean("hex_whispers", whispers).commit()
+        }
     }
     @Test fun clipEntryExplainsChannelRestrictionsAndNeedsExplicitRequest() {
         val context = context()

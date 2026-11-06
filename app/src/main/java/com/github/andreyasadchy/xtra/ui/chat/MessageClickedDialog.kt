@@ -60,14 +60,16 @@ class MessageClickedDialog : BottomSheetDialogFragment(), IntegrityDialog.Listen
     companion object {
         private const val KEY_MESSAGING = "messaging"
         private const val KEY_CHANNEL_ID = "channelId"
+        private const val KEY_CHANNEL_LOGIN = "channelLogin"
         private val savedUsers = mutableListOf<Pair<User, String?>>()
         private var selectedLanguage: String? = null
 
-        fun newInstance(messagingEnabled: Boolean, channelId: String?): MessageClickedDialog {
+        fun newInstance(messagingEnabled: Boolean, channelId: String?, channelLogin: String? = null): MessageClickedDialog {
             return MessageClickedDialog().apply {
                 arguments = Bundle().apply {
                     putBoolean(KEY_MESSAGING, messagingEnabled)
                     putString(KEY_CHANNEL_ID, channelId)
+                    putString(KEY_CHANNEL_LOGIN, channelLogin)
                 }
             }
         }
@@ -241,17 +243,32 @@ class MessageClickedDialog : BottomSheetDialogFragment(), IntegrityDialog.Listen
                 dismiss()
             }
             moderatorLookupJob?.cancel()
+            moderationGroup.isVisible = requireArguments().getBoolean(KEY_MESSAGING) && requireContext().prefs().getBoolean("hex_moderator_tools", true) && !chatMessage.userLogin.isNullOrBlank()
             moderateUser.isVisible = false
-            val channelId = requireArguments().getString(KEY_CHANNEL_ID)
-            if (requireContext().prefs().getBoolean("hex_moderator_tools", true) && !chatMessage.userLogin.isNullOrBlank()) {
+            moderationActions.isVisible = false
+            moderationSetup.isVisible = false
+            if (moderationGroup.isVisible) {
+                moderationStatus.setText(R.string.hex_mod_checking_role)
                 moderatorLookupJob = viewLifecycleOwner.lifecycleScope.launch {
-                    moderateUser.isVisible = ChannelActionSession.canModerate(requireContext(), channelId)
+                    val access = ChannelActionSession.moderatorAccess(requireContext(), requireArguments().getString(KEY_CHANNEL_ID), requireArguments().getString(KEY_CHANNEL_LOGIN))
+                    moderationGroup.isVisible = access.allowed || access.error != null
+                    moderationActions.isVisible = access.allowed
+                    moderateUser.isVisible = access.allowed
+                    moderationSetup.isVisible = access.error != null
+                    moderationStatus.text = if (access.allowed) "${chatMessage.userName ?: chatMessage.userLogin} • channel moderation" else access.error.orEmpty()
+                    fun open(action: String? = null) {
+                        com.github.andreyasadchy.xtra.ui.main.ChannelModeratorDialog.newInstance(access.channelId,
+                            requireArguments().getString(KEY_CHANNEL_LOGIN), chatMessage.userId, chatMessage.userLogin, chatMessage.id, action)
+                            .show(parentFragmentManager, "channelModerator")
+                        dismiss()
+                    }
+                    banUser.setOnClickListener { open("ban") }
+                    timeoutUser.setOnClickListener { open("timeout") }
+                    deleteUserMessage.isVisible = !chatMessage.id.isNullOrBlank()
+                    deleteUserMessage.setOnClickListener { open("delete") }
+                    moderateUser.setOnClickListener { open() }
+                    moderationSetup.setOnClickListener { ChannelActionSession.showModeratorSetup(requireContext(), access.error.orEmpty()) }
                 }
-            }
-            moderateUser.setOnClickListener {
-                startActivity(android.content.Intent(requireContext(), com.github.andreyasadchy.xtra.ui.main.ModeratorActivity::class.java)
-                    .putExtra("channel_id", requireArguments().getString(KEY_CHANNEL_ID)).putExtra("target_login", chatMessage.userLogin).putExtra("message_id", chatMessage.id))
-                dismiss()
             }
             if (requireArguments().getBoolean(KEY_MESSAGING) && (!chatMessage.userId.isNullOrBlank() || !chatMessage.userLogin.isNullOrBlank())) {
                 if (!chatMessage.id.isNullOrBlank()) {

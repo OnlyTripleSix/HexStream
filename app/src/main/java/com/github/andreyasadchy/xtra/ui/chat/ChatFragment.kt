@@ -198,7 +198,7 @@ class ChatFragment : BaseNetworkFragment(), MessageClickedDialog.OnButtonClickLi
                         messageClickListener = { channelId ->
                             (requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(editText.windowToken, 0)
                             editText.clearFocus()
-                            MessageClickedDialog.newInstance(enableMessaging, channelId).show(this@ChatFragment.childFragmentManager, "messageDialog")
+                            MessageClickedDialog.newInstance(enableMessaging, channelId, channelLogin).show(this@ChatFragment.childFragmentManager, "messageDialog")
                         },
                         replyClickListener = {
                             (requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(editText.windowToken, 0)
@@ -861,6 +861,7 @@ class ChatFragment : BaseNetworkFragment(), MessageClickedDialog.OnButtonClickLi
 
     override fun onResume() {
         super.onResume()
+        configureModeratorControls()
         val args = requireArguments()
         val channelId = args.getString(KEY_CHANNEL_ID)
         val channelLogin = args.getString(KEY_CHANNEL_LOGIN)
@@ -1354,6 +1355,29 @@ class ChatFragment : BaseNetworkFragment(), MessageClickedDialog.OnButtonClickLi
 
         override fun terminateToken(text: CharSequence): CharSequence {
             return "${if (text.startsWith(':')) text.substring(1) else text} "
+        }
+    }
+
+    private var moderatorControlsJob: kotlinx.coroutines.Job? = null
+    private fun configureModeratorControls() {
+        val controls = _binding?.moderateChannel ?: return
+        moderatorControlsJob?.cancel()
+        val context = requireContext()
+        val args = requireArguments()
+        controls.isVisible = args.getBoolean(KEY_IS_LIVE) && context.prefs().getBoolean("hex_moderator_tools", true) && !context.tokenPrefs().getString(C.USER_ID, null).isNullOrBlank()
+        if (!controls.isVisible) return
+        controls.setText(R.string.hex_mod_checking_role)
+        controls.isEnabled = false
+        moderatorControlsJob = viewLifecycleOwner.lifecycleScope.launch {
+            val access = com.github.andreyasadchy.xtra.util.ChannelActionSession.moderatorAccess(context, args.getString(KEY_CHANNEL_ID), args.getString(KEY_CHANNEL_LOGIN))
+            controls.isVisible = access.allowed || access.error != null
+            controls.isEnabled = true
+            controls.text = if (access.allowed) "Mod tools • ${args.getString(KEY_CHANNEL_LOGIN).orEmpty()}" else "Mod setup • tap to fix"
+            controls.setOnClickListener {
+                if (access.allowed) com.github.andreyasadchy.xtra.ui.main.ChannelModeratorDialog.newInstance(access.channelId, args.getString(KEY_CHANNEL_LOGIN))
+                    .show(childFragmentManager, "channelModerator")
+                else com.github.andreyasadchy.xtra.util.ChannelActionSession.showModeratorSetup(context, access.error.orEmpty())
+            }
         }
     }
 

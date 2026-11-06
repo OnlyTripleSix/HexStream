@@ -36,7 +36,7 @@
             android:paddingEnd="?attr/dialogPadding"
             android:paddingRight="?attr/dialogPadding"
             android:visibility="gone"
-            app:layout_constraintBottom_toTopOf="@id/messageLayout"
+            app:layout_constraintBottom_toTopOf="@id/moderationGroup"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -102,6 +102,25 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <LinearLayout
+            android:id="@+id/moderationGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:paddingStart="?attr/dialogPadding"
+            android:paddingEnd="?attr/dialogPadding"
+            app:layout_constraintTop_toBottomOf="@id/userLayout"
+            app:layout_constraintBottom_toTopOf="@id/messageLayout">
+            <TextView android:id="@+id/moderationStatus" android:layout_width="match_parent" android:layout_height="wrap_content" android:accessibilityLiveRegion="polite" />
+            <LinearLayout android:id="@+id/moderationActions" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:visibility="gone">
+                <Button android:id="@+id/banUser" style="?attr/bottomSheetButtonStyle" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:minHeight="48dp" android:text="@string/hex_mod_ban" />
+                <Button android:id="@+id/timeoutUser" style="?attr/bottomSheetButtonStyle" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:minHeight="48dp" android:text="@string/hex_mod_timeout" />
+                <Button android:id="@+id/deleteUserMessage" style="?attr/bottomSheetButtonStyle" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:minHeight="48dp" android:text="@string/hex_mod_delete" />
+            </LinearLayout>
+            <Button android:id="@+id/moderationSetup" style="?attr/bottomSheetButtonStyle" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/hex_mod_setup" android:visibility="gone" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/messageLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -114,7 +133,7 @@
             app:layout_constraintBottom_toTopOf="@id/buttonLayout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/userLayout">
+            app:layout_constraintTop_toBottomOf="@id/moderationGroup">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"

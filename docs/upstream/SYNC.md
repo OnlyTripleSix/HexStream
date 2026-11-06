@@ -4,7 +4,9 @@ HexStream started from Xtra 2.60.7, commit [`a3cbb0325f3330573a6738f7d36a2c5b785
 
 ## Current integrated checkpoint
 
-HexStream **1.0.0-beta.9** incorporates application changes through **Xtra 2.60.10**, commit [`0ab697de04799365f590f91e2dfbefc092c3ad5a`](https://github.com/crackededed/Xtra/commit/0ab697de04799365f590f91e2dfbefc092c3ad5a). HexStream keeps its own version, package and signing identity, explained settings and [credited ThystTV chat adaptation](THYST-CHAT.md), with the frameless transparent overlay, side selection and inline composer introduced in beta.6.
+HexStream **1.0.0-beta.10** incorporates application changes through **Xtra 2.60.10**, commit [`0ab697de04799365f590f91e2dfbefc092c3ad5a`](https://github.com/crackededed/Xtra/commit/0ab697de04799365f590f91e2dfbefc092c3ad5a). HexStream keeps its own version, package and signing identity, explained settings and [credited ThystTV chat adaptation](THYST-CHAT.md), with the frameless transparent overlay, side selection and inline composer introduced in beta.6.
+
+Beta.10 keeps moderation in the live channel with direct message actions and in-app poll controls, described in the channel-tools guide.
 
 The tested beta.8 channel tools are retained in this release. Preserve their independent notification list, optional foreground whisper lifecycle, owned web-history paging, encrypted per-account cache, exact-channel moderation checks, non-replayable writes and separate-browser-account notices during future merges. See [setup and limits](../CHANNEL-TOOLS.md).
 

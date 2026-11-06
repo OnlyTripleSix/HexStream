@@ -590,7 +590,19 @@
     <string name="hex_whispers_help" translatable="false">Show Whispers in the menu and receive new messages for the active account while HexStream is open. Existing Twitch conversations and older messages load when you open the inbox; recent messages are cached with device-key encryption. Background alerts are not yet included. Example: enable this to message a friend or read an older conversation; turn it off to hide the feature and close live receiving.</string>
     <string name="hex_mod_title" translatable="false">Moderator tools</string>
     <string name="hex_mod_visibility_title" translatable="false">Show detected moderator controls</string>
-    <string name="hex_mod_help" translatable="false">Show moderator controls when Twitch verifies that your active account moderates the current channel or owns it. The setting controls visibility; channel roles determine access. Actions stay tied to that channel and permissions are checked again before submitting. Requires Twitch API login permissions. Example: open a stream you moderate and use its player menu or tap a chat message.</string>
+    <string name="hex_mod_help" translatable="false">Show moderator controls when Twitch verifies that your active account moderates the current channel or owns it. The setting controls visibility; channel roles determine access. Actions stay tied to that channel and permissions are checked again before submitting. Requires Twitch API login permissions. Example: tap a chat message to ban, timeout or delete it, or use Mod tools inside the current chat for polls and channel controls. If a saved login needs attention, Mod setup explains how to fix it.</string>
     <string name="hex_create_clip" translatable="false">Create a clip</string>
-    <string name="hex_moderate_message" translatable="false">Moderate user / message</string>
+    <string name="hex_moderate_message" translatable="false">Channel controls • polls, AutoMod and more</string>
+    <string name="hex_mod_ban" translatable="false">Ban</string>
+    <string name="hex_mod_timeout" translatable="false">Timeout…</string>
+    <string name="hex_mod_delete" translatable="false">Delete</string>
+    <string name="hex_mod_setup" translatable="false">Fix moderator access</string>
+    <string name="hex_mod_back_channel" translatable="false">Back to channel</string>
+    <string name="hex_mod_back_controls" translatable="false">Back to channel controls</string>
+    <string name="hex_mod_enter_user" translatable="false">Enter a Twitch username.</string>
+    <string name="hex_mod_warn_reason" translatable="false">Enter a reason for this warning.</string>
+    <string name="hex_mod_checking_role" translatable="false">Checking moderator access…</string>
+    <string name="hex_mod_checking_channel" translatable="false">Checking channel access…</string>
+    <string name="hex_mod_web_stopped" translatable="false">Twitch\'s panel stopped. Close and reopen it to retry.</string>
+    <string name="hex_mod_web_access_failed" translatable="false">Could not verify access. Return to channel controls and check moderator setup.</string>
 </resources>

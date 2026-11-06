@@ -38,6 +38,15 @@
                 tools:visibility="visible" />
         </FrameLayout>
 
+        <Button
+            android:id="@+id/moderateChannel"
+            style="?attr/bottomSheetButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/hex_mod_title"
+            android:visibility="gone" />
+
         <LinearLayout
             android:id="@+id/replyView"
             android:layout_width="match_parent"

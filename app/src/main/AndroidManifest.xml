@@ -58,7 +58,6 @@
         </activity>
         <activity android:name=".ui.main.AccountTransitionActivity" android:process=":account_transition" android:exported="false" android:excludeFromRecents="true" />
         <activity android:name=".ui.main.UpdateInstallActivity" android:exported="false" android:excludeFromRecents="true" />
-        <activity android:name=".ui.main.ModeratorActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".ui.main.WhispersActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".ui.main.CreateClipActivity" android:exported="false" />
         <activity android:name=".ui.main.FiltersActivity" android:exported="false" />

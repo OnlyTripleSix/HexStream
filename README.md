@@ -20,7 +20,9 @@ The filtering workflow and compatible list format were inspired by **[Unwanted T
 
 ## Get HexStream
 
-Download the APK from [Releases](https://github.com/OnlyTripleSix/HexStream/releases). The current release is **1.0.0-beta.9**, built locally with Gradle and the Android SDK. Android 7.0 or newer is required. No GitHub Actions build is used.
+Download the APK from [Releases](https://github.com/OnlyTripleSix/HexStream/releases). The current release is **1.0.0-beta.10**, built locally with Gradle and the Android SDK. Android 7.0 or newer is required. No GitHub Actions build is used.
+
+Moderation lives in the channel’s chat. Tap a message for **Ban**, **Timeout**, or **Delete**. Use **Mod tools** for polls, chat modes and AutoMod. [Setup and permissions →](docs/CHANNEL-TOOLS.md)
 
 Beta.9 brings in Xtra 2.60.10's download fixes and the channel tools described below. Fullscreen chat can sit transparently over the full-size game or beside it, on either side, with typing/replies/emotes. That work adapts [ThystTV by tzii and its contributors](https://github.com/tzii/ThystTV). The explained settings, stable category browsing and full supplied-tag rules stay intact. [Settings guide →](docs/SETTINGS.md) · [What changed →](CHANGELOG.md)
 
