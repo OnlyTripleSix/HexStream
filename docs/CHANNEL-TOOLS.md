@@ -67,7 +67,7 @@ Setting an overall AutoMod level replaces custom category levels; the confirmati
 
 ### Polls, predictions and everything else
 
-Use **Mod tools → Polls** for Twitch's moderator-capable poll manager inside an in-app sheet over the channel. Twitch's public poll API requires the broadcaster's own authorization, so moderator access uses Twitch's own web controls. The channel stays fixed. [Twitch poll API permissions](https://dev.twitch.tv/docs/api/reference/#create-poll).
+Use **Mod tools → Polls** for Twitch's poll results and existing-poll controls inside an in-app sheet over the channel. For creating a poll or using predictions, open **More Twitch controls** and use the selected channel's Twitch workspace. Poll creation is not yet verified on a live eligible channel. Twitch's public poll API requires the broadcaster's own authorization, so moderator access uses Twitch's own web controls. [Twitch poll API permissions](https://dev.twitch.tv/docs/api/reference/#create-poll).
 
 On WebView versions with profile support, each HexStream account gets its own isolated in-app Twitch profile. Before reusing the saved web login, HexStream verifies that it belongs to the active account and has the current channel role. The login is supplied only to Twitch in that profile over HTTPS. If reuse is unavailable or Twitch requests verification, sign in or complete the check inside the panel and confirm the account shown. The external browser's cookies are separate. **More Twitch controls** and **Full AutoMod queue** use the same in-app panel for the broader Twitch workspace.
 
