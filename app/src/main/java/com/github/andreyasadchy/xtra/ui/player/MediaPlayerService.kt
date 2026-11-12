@@ -94,6 +94,8 @@ class MediaPlayerService : BasePlaybackService() {
     var seekPosition: Long? = null
     var startPlayer = true
     private var customProxyList: List<CustomProxy>? = null
+    var playbackNotice: Int? = null
+        private set
     private var streamProxyList: List<StreamProxy>? = null
     private var backupQualities: List<String>? = null
     private var created = false
@@ -112,6 +114,7 @@ class MediaPlayerService : BasePlaybackService() {
     var playerListener: PlayerListener? = null
 
     interface Listener {
+        fun playbackNotice(resId: Int?)
         fun started()
         fun loaded()
         fun changePlayerMode()
@@ -397,12 +400,21 @@ class MediaPlayerService : BasePlaybackService() {
     }
 
     private fun start(restorePauseState: Boolean) {
+        setPlaybackNotice(null)
         lifecycleScope.launch {
             restorePlaybackState()
             when (type) {
                 STREAM -> {
                     started = true
                     serviceListener?.started()
+                    val requestedProxy = prefs().getBoolean(C.PLAYER_USE_CUSTOM_PROXY, true)
+                    if (requestedProxy != useCustomProxy) {
+                        qualities = null
+                        playlistUrl = null
+                        currentCustomProxy = 0
+                    }
+                    useCustomProxy = requestedProxy
+                    useStreamProxy = !requestedProxy && prefs().getBoolean(C.PLAYER_USE_STREAM_PROXY, false)
                     if (qualities.isNullOrEmpty()) {
                         useCustomProxy = prefs().getBoolean(C.PLAYER_USE_CUSTOM_PROXY, true)
                         if (!useCustomProxy) {
@@ -520,6 +532,26 @@ class MediaPlayerService : BasePlaybackService() {
 
     private suspend fun loadStream(restorePauseState: Boolean = false, restart: Boolean = false) {
         channelLogin?.let { channelLogin ->
+            if (useCustomProxy) {
+                when (PlaybackProxyPolicy.route(true, currentCustomProxy, customProxyList?.size ?: 0,
+                        prefs().getBoolean("hex_allow_direct_fallback", false), invalidatePlaylist = {
+                            qualities = null
+                            playlistUrl = null
+                        })) {
+                    PlaybackProxyPolicy.Route.EXHAUSTED -> {
+                        setPlaybackNotice(R.string.hex_proxy_exhausted)
+                        playlistUrl = null
+                        player?.reset()
+                        return
+                    }
+                    PlaybackProxyPolicy.Route.DIRECT -> {
+                        useCustomProxy = false
+                        serviceListener?.toast(R.string.hex_proxy_direct_warning, Toast.LENGTH_LONG)
+                    }
+                    PlaybackProxyPolicy.Route.PROXY -> Unit
+                }
+            }
+            setPlaybackNotice(null)
             var streamProxy = if (useStreamProxy) {
                 streamProxyList?.getOrNull(currentStreamProxy).also {
                     if (it == null) {
@@ -1413,9 +1445,26 @@ class MediaPlayerService : BasePlaybackService() {
         }
     }
 
-    fun restartPlayer() {
+    private fun setPlaybackNotice(resId: Int?) {
+        playbackNotice = resId
+        serviceListener?.playbackNotice(resId)
+    }
+
+    fun restartPlayer(resetProxies: Boolean = false) {
         if (quality?.name != VideoQuality.CHAT_ONLY_QUALITY) {
             lifecycleScope.launch {
+                if (resetProxies && type == STREAM) {
+                    useCustomProxy = prefs().getBoolean(C.PLAYER_USE_CUSTOM_PROXY, true)
+                    currentCustomProxy = 0
+                    useStreamProxy = !useCustomProxy && prefs().getBoolean(C.PLAYER_USE_STREAM_PROXY, false)
+                    currentStreamProxy = 0
+                    if (useCustomProxy) customProxyList = xtraModule.playerRepository.getCustomProxies()
+                        .filter { it.enabled && !it.url.isNullOrBlank() }.sortedBy { it.position }
+                    if (useStreamProxy) streamProxyList = xtraModule.playerRepository.getStreamProxies().filter {
+                        it.enabled && !it.host.isNullOrBlank() && it.port != null &&
+                            (it.proxyPlaybackAccessToken || it.proxyMultivariantPlaylist || it.proxyMediaPlaylist)
+                    }.sortedBy { it.position }
+                }
                 loadStream(restart = true)
             }
         }

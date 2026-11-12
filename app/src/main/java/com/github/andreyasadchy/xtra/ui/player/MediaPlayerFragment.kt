@@ -81,6 +81,9 @@ class MediaPlayerFragment : PlayerFragment() {
             }
         }
         val serviceListener = object : MediaPlayerService.Listener {
+            override fun playbackNotice(resId: Int?) {
+                if (view != null) showPlaybackNotice(resId)
+            }
             override fun started() {
                 if (view != null) {
                     if (!started) {
@@ -199,6 +202,7 @@ class MediaPlayerFragment : PlayerFragment() {
                     val binder = service as MediaPlayerService.ServiceBinder
                     playbackService = binder.getService()
                     playbackService?.serviceListener = serviceListener
+                    showPlaybackNotice(playbackService?.playbackNotice)
                     if (surfaceCreated && binding.playerSurface.isVisible) {
                         playbackService?.player?.setDisplay(binding.playerSurface.holder)
                     }
@@ -378,7 +382,13 @@ class MediaPlayerFragment : PlayerFragment() {
     }
 
     override fun restartPlayer() {
-        playbackService?.restartPlayer()
+        playbackService?.restartPlayer(resetProxies = true)
+    }
+
+    private fun showPlaybackNotice(resId: Int?) {
+        binding.playbackNotice.isVisible = resId != null
+        binding.playbackNoticeText.text = resId?.let { getString(it) }.orEmpty()
+        binding.retryPlayback.setOnClickListener { restartPlayer() }
     }
 
     override fun toggleAudioCompressor() {

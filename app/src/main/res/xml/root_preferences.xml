@@ -129,6 +129,14 @@
         app:iconSpaceReserved="false"
         app:singleLineTitle="false" />
 
+    <SwitchPreferenceCompat
+        android:key="hex_allow_direct_fallback"
+        android:defaultValue="false"
+        android:title="@string/hex_allow_direct_fallback"
+        android:summary="@string/hex_help_allow_direct_fallback"
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false" />
+
     <Preference
         android:key="stream_proxy_settings"
         android:summary="@string/hex_help_root_stream_proxy_settings"

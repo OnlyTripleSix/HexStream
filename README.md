@@ -20,7 +20,9 @@ The filtering workflow and compatible list format were inspired by **[Unwanted T
 
 ## Get HexStream
 
-Download the APK from [Releases](https://github.com/OnlyTripleSix/HexStream/releases). The current release is **1.0.0-beta.10**, built locally with Gradle and the Android SDK. Android 7.0 or newer is required. No GitHub Actions build is used.
+Download the APK from [Releases](https://github.com/OnlyTripleSix/HexStream/releases). The current release is **1.0.0-beta.11**, built locally with Gradle and the Android SDK. Android 7.0 or newer is required. No GitHub Actions build is used.
+
+**Proxies should not quietly give up and serve you ads.** Detected ads and connection failures now advance through your enabled list. Exhausting it shows **Retry playback**; direct Twitch fallback is off unless you choose it. Pinch with two fingers to zoom the video up to 400%, without enlarging chat or breaking the existing single-finger controls. [Playback and zoom guide →](docs/PLAYBACK.md)
 
 Moderation lives in the channel’s chat. Tap a message for **Ban**, **Timeout**, or **Delete**. Use **Mod tools** for polls, chat modes and AutoMod. [Setup and permissions →](docs/CHANNEL-TOOLS.md)
 
@@ -44,9 +46,10 @@ The app and extension are separate installations with explicit compatible-list e
 | **Global filtering controls** | Exact, contains and regex rules; narrow allow lists; optional language and emoji checks; import/export compatible with Unwanted Twitch. |
 | **“Why blocked?”** | Inspect recent hidden items and the precise rules or language/emoji evidence that hid them. Edit the rule or add a narrow exception. |
 | **Multiple saved accounts** | One active account at a time, encrypted saved credentials, and notifications scoped to that active account. Global filters and proxies survive switches. |
-| **Six playback proxy presets** | Ordered Luminous and PerfProd endpoints, editable custom proxies, and the existing player’s fallback behavior. Shared by all accounts. |
+| **Six playback proxy presets** | Shared, editable Luminous/PerfProd order. Detected ads and failures try the next endpoint; exhaustion shows Retry instead of silently switching to direct Twitch. Direct fallback is an explicit opt-in. |
 | **Lower live delay** | ExoPlayer starts closer to the live edge by default, with bounded speed adjustment and live-specific buffering. Network and source conditions still matter. |
 | **Swipe controls** | Left-side brightness and right-side volume, independently configurable, alongside the existing minimize/miniplayer gestures. |
+| **Pinch to zoom** | Two-finger zoom and pan from 100% to 400%, applied to the video alone. Chat, subtitles and controls keep their size. Pinch back or tap Aspect ratio to reset. |
 | **Explained settings** | Descriptions and examples under every preference, current values kept visible, and searchable explanations of overlapping controls. |
 | **Transparent fullscreen chat** | Chat sits directly over the full-size game, without a floating window or toolbar. Choose left/right placement, type/reply at the bottom, and adjust background opacity/contrast; same chat session. Adapted from ThystTV, with attribution. |
 | **Channel points** | Claim an available bonus chest and redeem available channel rewards, with balance, input and confirmation handling. |

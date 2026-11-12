@@ -4,7 +4,9 @@ HexStream started from Xtra 2.60.7, commit [`a3cbb0325f3330573a6738f7d36a2c5b785
 
 ## Current integrated checkpoint
 
-HexStream **1.0.0-beta.10** incorporates application changes through **Xtra 2.60.10**, commit [`0ab697de04799365f590f91e2dfbefc092c3ad5a`](https://github.com/crackededed/Xtra/commit/0ab697de04799365f590f91e2dfbefc092c3ad5a). HexStream keeps its own version, package and signing identity, explained settings and [credited ThystTV chat adaptation](THYST-CHAT.md), with the frameless transparent overlay, side selection and inline composer introduced in beta.6.
+HexStream **1.0.0-beta.11** incorporates application changes through **Xtra 2.60.10**, commit [`0ab697de04799365f590f91e2dfbefc092c3ad5a`](https://github.com/crackededed/Xtra/commit/0ab697de04799365f590f91e2dfbefc092c3ad5a). HexStream keeps its own version, package and signing identity, explained settings and [credited ThystTV chat adaptation](THYST-CHAT.md), with the frameless transparent overlay, side selection and inline composer introduced in beta.6.
+
+Beta.11 adds HexStream's retained-tag ad detection, bounded playback URL proxy recovery, explicit direct-fallback choice and video-only pinch zoom. Upstream/master still matched the checkpoint above when checked; these are HexStream changes, not newly integrated Xtra patches. [Behavior and limits](../PLAYBACK.md).
 
 Beta.10 keeps moderation in the live channel with direct message actions and in-app poll controls, described in the channel-tools guide.
 

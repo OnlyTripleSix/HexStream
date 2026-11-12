@@ -63,6 +63,28 @@
                 android:accessibilityLiveRegion="polite"
                 android:clickable="false"
                 android:visibility="gone" />
+            <LinearLayout
+                android:id="@+id/playbackNotice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:orientation="vertical"
+                android:background="#EE15151C"
+                android:padding="16dp"
+                android:visibility="gone">
+                <TextView
+                    android:id="@+id/playbackNoticeText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFF5EE"
+                    android:accessibilityLiveRegion="polite" />
+                <Button
+                    android:id="@+id/retryPlayback"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:text="@string/hex_retry_playback" />
+            </LinearLayout>
         </com.github.andreyasadchy.xtra.ui.view.PlayerLayout>
 
         <com.github.andreyasadchy.xtra.ui.view.ChatLayout

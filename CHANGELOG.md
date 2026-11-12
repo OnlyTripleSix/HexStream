@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0-beta.11
+
+- Read Twitch ad date ranges from retained HLS tags as well as existing segment/interstitial markers. This catches Twitch markers omitted from Media3's Apple-interstitial list, including end updates and low-latency playlist tails.
+- Try the next enabled playback URL proxy on detected ads or transport/playlist failures. Each pass is bounded by the saved list; keep the first successful endpoint and preserve custom URLs, order and disabled entries across accounts.
+- Stop with a visible Retry action when proxies run out. Direct Twitch fallback is a separate global opt-in, off by default, with an explicit warning when used.
+- Add video-only two-finger pinch zoom/pan from 100% to 400%. Preserve single-finger brightness, volume and minimize behavior. Reset through a reverse pinch or Aspect ratio, and clear zoom on layout/minimize/PiP/stop transitions. Add an explained visibility-independent zoom setting.
+- Keep Xtra 2.60.10 as the integrated upstream base; no newer upstream commits were available for this update.
+
 ## 1.0.0-beta.10
 
 - Remove the separate moderator dashboard from browsing/player overflow menus. Keep controls in live chat and sheets over the current player.

@@ -128,6 +128,12 @@
         android:defaultValue="true"
         android:title="@string/hex_swipe_volume"
         app:iconSpaceReserved="false" />
+    <SwitchPreferenceCompat
+        android:key="hex_pinch_zoom"
+        android:summary="@string/hex_help_player_pinch_zoom"
+        android:defaultValue="true"
+        android:title="@string/hex_pinch_zoom"
+        app:iconSpaceReserved="false" />
     <SwitchPreferenceCompat android:key="hex_low_delay"
         android:summary="@string/hex_help_player_hex_low_delay" android:defaultValue="true" android:title="@string/hex_low_delay" app:iconSpaceReserved="false" />
 </androidx.preference.PreferenceScreen>

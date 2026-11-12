@@ -1,5 +1,15 @@
 # Verification and known limits
 
+## Playback recovery and pinch zoom: 1.0.0-beta.11
+
+All **225 JVM tests /34 suites** passed with no failures/errors/skips. New regressions cover retained Twitch ad classes/IDs/attributes, range boundaries and end updates, quoted commas, missing/malformed/unrelated metadata, legacy titles, bounded proxy exhaustion with explicit direct opt-in, saved-source invalidation before a permitted direct transition, and zoom bounds/anchoring/pan/reset/invalid input. Existing pagination, rules, accounts, low-delay, rewards, channel-tool and download suites remain included.
+
+All **34 account-free physical-device tests** passed on a Galaxy S21 Ultra in the isolated QA package. Four new gesture checks exercise the real zoom controller with a SurfaceView parent: video-only transformation, unchanged controls, pinch-tail ownership, disabled/miniplayer eligibility and reset. Two real Media3 parser checks reproduce Twitch date ranges being retained in tags but absent from the Apple-interstitial list, and reject unrelated program metadata. Settings fixtures now cover **232 preference rows**. The previous overlay, proxy, account, filter, whisper and moderation checks still pass. These are synthetic fixtures, not a long live ad-break test.
+
+Lint reports **zero errors and 26 reviewed warnings**: dependency/build-plugin availability plus inherited orientation/layout/resource/preference suggestions. No check was disabled. Local signing/package/source/default-list/privacy checks accompany packaging. Proxy exhaustion and Retry use the same shared route policy with both player engines; ad-marker recovery requires the default ExoPlayer. Pinch zoom supports both engines.
+
+Anonymous desktop checks received live HLS master playlists from both Luminous presets and PerfProd Asia for a publicly confirmed live channel; other configured endpoints returned an error or timed out in that sample. The saved six-endpoint order was retained. These responses do not prove continuous ad-free playback. A signed-out live device search remained loading, so a live device playback/ad-break smoke check was not completed. Its cause was not established. No personal installation, account, filter or network settings were changed. Device QA packages were removed afterward. Real moderation, whispers, reward spending and other Twitch writes were not submitted.
+
 ## In-channel moderation: 1.0.0-beta.10
 
 All **206 JVM tests /31 suites** passed, with zero failures/errors/skips. New role checks cover authenticated owner/channel identity, missing role data, revoked access before a write, older channel-list grants, account changes and sanitized failures. URL checks keep poll/full-control navigation on the selected Twitch channel and trusted login hosts. Existing pagination, full-tag/language rules, global proxies, account handling, rewards, low-delay playback, whispers and clips remain covered.

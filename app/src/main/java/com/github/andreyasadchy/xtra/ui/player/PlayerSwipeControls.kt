@@ -85,14 +85,18 @@ internal class PlayerSwipeControls(private val activity: Activity, private val o
         return claimed
     }
 
+    fun cancelGesture() {
+        candidate = null
+        claimed = false
+        overlay.removeCallbacks(hide)
+        overlay.visibility = View.GONE
+    }
+
     fun restore() {
         originalBrightness?.let { previous ->
             activity.window.attributes = activity.window.attributes.apply { screenBrightness = previous }
         }
         originalBrightness = null
-        candidate = null
-        claimed = false
-        overlay.removeCallbacks(hide)
-        overlay.visibility = View.GONE
+        cancelGesture()
     }
 }

@@ -22,6 +22,12 @@ The main screen groups app/browsing controls, watching/listening, proxies, downl
 | Simultaneous downloads / download threads | Number of jobs versus chunks fetched concurrently inside a job. Lower either if downloads crowd out playback. |
 | App language / translation / stream filters | Menus, how received chat is translated, and what browsing results are hidden. Changing one does not select the others. |
 
+## Playback proxies and video zoom
+
+**Settings → Playback URL proxies** uses the shared ordered preset list. Detected ad markers and playback errors advance through it. Exhaustion shows **Retry playback**, which reloads the enabled list from the beginning. **Allow direct playback if proxies fail** is off initially; enabling it permits direct Twitch after exhaustion and can show ads. Turning off playback URL proxies deliberately selects the inherited direct/HTTP/video-swap path. [Details](PLAYBACK.md).
+
+**Player settings → Pinch to zoom video** is on initially. Use two fingers to zoom and move the video, then pinch back or tap **Aspect ratio** to reset. Single-finger swipes retain their existing roles. Zoom changes no saved aspect ratio and resets on layout/minimize/PiP/stop transitions. Chat and controls retain their original size.
+
 ## Transparent fullscreen chat
 
 While watching in landscape, open the **player menu → Fullscreen chat overlay**. The same switch is at **Settings → Chat**. Docked chat remains the default.

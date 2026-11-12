@@ -93,6 +93,7 @@ import kotlin.time.Instant
 abstract class PlayerFragment : BaseNetworkFragment(), RadioButtonDialogFragment.OnSortOptionChanged, IntegrityDialog.Listener {
 
     private var swipeControls: PlayerSwipeControls? = null
+    private var zoomControls: PlayerZoomControls? = null
     private var floatingChat: FloatingChatController? = null
     private var _binding: FragmentPlayerBinding? = null
     protected val binding get() = _binding!!
@@ -185,6 +186,9 @@ abstract class PlayerFragment : BaseNetworkFragment(), RadioButtonDialogFragment
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPressedCallback)
         observePlayback()
         swipeControls = PlayerSwipeControls(requireActivity(), binding.gestureLevel)
+        zoomControls = PlayerZoomControls(binding.aspectRatioFrameLayout, binding.playerLayout, binding.gestureLevel) { zoomed ->
+            binding.playerControls.aspectRatio.contentDescription = getString(if (zoomed) R.string.hex_reset_zoom else R.string.aspect_ratio)
+        }
         floatingChat = FloatingChatController(binding.playerLayout, binding.chatFragmentContainer, requireContext().prefs(),
             styleChat = { floating, contrast -> chatFragment?.setFloatingPresentation(floating, contrast) }, controls = binding.playerControls.root)
         with(binding) {
@@ -460,6 +464,20 @@ abstract class PlayerFragment : BaseNetworkFragment(), RadioButtonDialogFragment
             }
 
             dragView.setOnTouchListener { _, event ->
+                if (zoomControls?.touch(event, !isAnimating && isMaximized && !requireActivity().isInPictureInPictureMode &&
+                        requireContext().prefs().getBoolean("hex_pinch_zoom", true) &&
+                        playbackService?.quality?.name != VideoQuality.AUDIO_ONLY_QUALITY &&
+                        playbackService?.quality?.name != VideoQuality.CHAT_ONLY_QUALITY) {
+                        swipeControls?.cancelGesture()
+                        val cancel = MotionEvent.obtain(event).apply { action = MotionEvent.ACTION_CANCEL }
+                        playerControls.root.dispatchTouchEvent(cancel)
+                        controllerTapDetector.onTouchEvent(cancel)
+                        cancel.recycle()
+                        activePointerId = -1
+                        moveAnimation?.cancel()
+                        slidingLayout.translationY = 0f
+                        enableBackground()
+                    } == true) return@setOnTouchListener true
                 if (swipeControls?.touch(event, dragView.width, dragView.height,
                         !isAnimating && isMaximized && !playerControls.root.isVisible && !requireActivity().isInPictureInPictureMode) {
                         val cancel = MotionEvent.obtain(event).apply { action = MotionEvent.ACTION_CANCEL }
@@ -1181,6 +1199,7 @@ abstract class PlayerFragment : BaseNetworkFragment(), RadioButtonDialogFragment
     }
 
     private fun initLayout() {
+        zoomControls?.reset()
         with(binding) {
             if (isPortrait) {
                 requireActivity().window.decorView.setOnSystemUiVisibilityChangeListener(null)
@@ -1336,6 +1355,10 @@ abstract class PlayerFragment : BaseNetworkFragment(), RadioButtonDialogFragment
     }
 
     fun setResizeMode() {
+        if (zoomControls?.zoomed == true) {
+            zoomControls?.reset()
+            return
+        }
         resizeMode = (resizeMode + 1).let { if (it < 5) it else 0 }
         binding.aspectRatioFrameLayout.resizeMode = resizeMode
         requireContext().prefs().edit { putInt(C.ASPECT_RATIO_LANDSCAPE, resizeMode) }
@@ -1793,6 +1816,7 @@ abstract class PlayerFragment : BaseNetworkFragment(), RadioButtonDialogFragment
     }
 
     fun changePlayerMode() {
+        if (!canEnterPictureInPicture()) zoomControls?.reset()
         with(binding) {
             if (canEnterPictureInPicture()) {
                 if (!controllerHideOnTouch && !controllerIsAnimating && controllerAutoHide && !binding.playerControls.progressBar.isPressed) {
@@ -2090,6 +2114,7 @@ abstract class PlayerFragment : BaseNetworkFragment(), RadioButtonDialogFragment
     }
 
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
+        zoomControls?.reset()
         with(binding) {
             if (isInPictureInPictureMode) {
                 if (!isMaximized) {
@@ -2129,11 +2154,13 @@ abstract class PlayerFragment : BaseNetworkFragment(), RadioButtonDialogFragment
     override fun onStop() {
         super.onStop()
         swipeControls?.restore()
+        zoomControls?.reset()
         binding.playerControls.root.removeCallbacks(controllerHideAction)
     }
 
     fun minimize() {
         swipeControls?.restore()
+        zoomControls?.reset()
         with(binding) {
             isMaximized = false
             floatingChat?.update(false, chatFragment?.view)
@@ -2477,6 +2504,8 @@ abstract class PlayerFragment : BaseNetworkFragment(), RadioButtonDialogFragment
     }
 
     override fun onDestroyView() {
+        zoomControls?.dispose()
+        zoomControls = null
         floatingChat?.dispose()
         floatingChat = null
         swipeControls?.restore()

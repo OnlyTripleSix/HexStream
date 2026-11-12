@@ -168,6 +168,9 @@ class ExoPlayerFragment : PlayerFragment() {
             }
         }
         val serviceListener = object : ExoPlayerService.Listener {
+            override fun playbackNotice(resId: Int?) {
+                if (view != null) showPlaybackNotice(resId)
+            }
             override fun started() {
                 if (view != null) {
                     if (!started) {
@@ -280,6 +283,7 @@ class ExoPlayerFragment : PlayerFragment() {
                     val binder = service as ExoPlayerService.ServiceBinder
                     playbackService = binder.getService()
                     playbackService?.serviceListener = serviceListener
+                    showPlaybackNotice(playbackService?.playbackNotice)
                     (playbackService?.secondaryPlayer ?: playbackService?.player)?.setVideoSurfaceView(binding.playerSurface)
                     (playbackService?.secondaryPlayer ?: playbackService?.player)?.addListener(listener)
                     playerListener = listener
@@ -404,7 +408,13 @@ class ExoPlayerFragment : PlayerFragment() {
     }
 
     override fun restartPlayer() {
-        playbackService?.restartPlayer()
+        playbackService?.restartPlayer(resetProxies = true)
+    }
+
+    private fun showPlaybackNotice(resId: Int?) {
+        binding.playbackNotice.isVisible = resId != null
+        binding.playbackNoticeText.text = resId?.let { getString(it) }.orEmpty()
+        binding.retryPlayback.setOnClickListener { restartPlayer() }
     }
 
     override fun toggleAudioCompressor() {

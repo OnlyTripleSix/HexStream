@@ -605,4 +605,14 @@
     <string name="hex_mod_checking_channel" translatable="false">Checking channel access…</string>
     <string name="hex_mod_web_stopped" translatable="false">Twitch\'s panel stopped. Close and reopen it to retry.</string>
     <string name="hex_mod_web_access_failed" translatable="false">Could not verify access. Return to channel controls and check moderator setup.</string>
+    <string translatable="false" name="hex_pinch_zoom">Pinch to zoom video</string>
+    <string translatable="false" name="hex_help_player_pinch_zoom">Use two fingers to zoom from 100% to 400% and move the enlarged video. Example: inspect small game text. Pinch back to 100% or tap Aspect ratio to reset. Single-finger volume, brightness and minimize controls stay available. Zoom resets when the player changes layout, minimizes, stops or enters picture-in-picture.</string>
+    <string translatable="false" name="hex_zoom_level">Zoom %1$d%%</string>
+    <string translatable="false" name="hex_reset_zoom">Reset video zoom</string>
+    <string translatable="false" name="hex_allow_direct_fallback">Allow direct playback if proxies fail</string>
+    <string translatable="false" name="hex_help_allow_direct_fallback">Off by default: stop after all enabled playback URL proxies fail instead of silently switching to Twitch with ads. Example: leave off to avoid direct ads; turn on if uninterrupted playback matters more. This affects playback URL proxies only. Changing accounts keeps this setting.</string>
+    <string translatable="false" name="hex_proxy_exhausted">No usable playback proxy remains. Retry to start the list again, or enable direct fallback in Settings if you accept ads.</string>
+    <string translatable="false" name="hex_proxy_ad_retry">Ad detected from this proxy. Trying the next enabled endpoint…</string>
+    <string translatable="false" name="hex_proxy_direct_warning">Playback proxies exhausted. Direct fallback is enabled; Twitch may show ads.</string>
+    <string translatable="false" name="hex_retry_playback">Retry playback</string>
 </resources>
