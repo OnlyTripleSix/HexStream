@@ -1,6 +1,27 @@
 package com.github.andreyasadchy.xtra.ui.player
 
 internal object PlaybackProxyPolicy {
+    class AdRecovery {
+        private var delaysUsed = 0
+        private var sawAd = false
+
+        fun rejected(hasAd: Boolean, stablePlayback: Boolean) {
+            if (stablePlayback) reset()
+            sawAd = sawAd || hasAd
+        }
+
+        fun nextDelayMs(): Long? = if (sawAd && delaysUsed < adRetryDelays.size) {
+            adRetryDelays[delaysUsed++]
+        } else null
+
+        fun reset() {
+            delaysUsed = 0
+            sawAd = false
+        }
+    }
+
+    private val adRetryDelays = longArrayOf(15_000, 25_000, 30_000)
+
     enum class Route { PROXY, DIRECT, EXHAUSTED }
     fun route(requested: Boolean, index: Int, count: Int, allowDirect: Boolean, invalidatePlaylist: () -> Unit = {}): Route {
         val route = when {

@@ -611,6 +611,7 @@
     <string translatable="false" name="hex_reset_zoom">Reset video zoom</string>
     <string translatable="false" name="hex_allow_direct_fallback">Allow direct playback if proxies fail</string>
     <string translatable="false" name="hex_help_allow_direct_fallback">Off by default: stop after all enabled playback URL proxies fail instead of silently switching to Twitch with ads. Example: leave off to avoid direct ads; turn on if uninterrupted playback matters more. This affects playback URL proxies only. Changing accounts keeps this setting.</string>
+    <string translatable="false" name="hex_proxy_wait_for_ad_break">Ad break detected. Checking for a clean stream again shortly.</string>
     <string translatable="false" name="hex_proxy_exhausted">No usable playback proxy remains. Retry to start the list again, or enable direct fallback in Settings if you accept ads.</string>
     <string translatable="false" name="hex_proxy_ad_retry">Ad detected from this proxy. Trying the next enabled endpoint…</string>
     <string translatable="false" name="hex_proxy_direct_warning">Playback proxies exhausted. Direct fallback is enabled; Twitch may show ads.</string>

@@ -34,4 +34,18 @@ class PlaybackProxyPolicyTest {
         assertEquals(PlaybackProxyPolicy.Route.DIRECT, PlaybackProxyPolicy.route(true, 1, 1, true, invalidate))
         assertNull(cached)
     }
+    @Test fun adRechecksAreBoundedAndTransportAloneDoesNotRetry() {
+        val recovery = PlaybackProxyPolicy.AdRecovery()
+        recovery.rejected(hasAd = false, stablePlayback = false)
+        assertNull(recovery.nextDelayMs())
+        recovery.rejected(hasAd = true, stablePlayback = false)
+        assertEquals(15_000L, recovery.nextDelayMs())
+        assertEquals(25_000L, recovery.nextDelayMs())
+        assertEquals(30_000L, recovery.nextDelayMs())
+        assertNull(recovery.nextDelayMs())
+        recovery.rejected(hasAd = true, stablePlayback = true)
+        assertEquals(15_000L, recovery.nextDelayMs())
+        recovery.reset()
+        assertNull(recovery.nextDelayMs())
+    }
 }

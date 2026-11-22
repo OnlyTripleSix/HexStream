@@ -126,6 +126,9 @@ class ExoPlayerService : BasePlaybackService() {
 
     private var customProxyMediaSourceFactory: HlsMediaSource.Factory? = null
     private var customProxyList: List<CustomProxy>? = null
+    private val proxyAdRecovery = PlaybackProxyPolicy.AdRecovery()
+    private var proxyPlaybackStartedAt: Long? = null
+    private var waitingForProxyRecheck = false
     private var customProxyRecoveryJob: kotlinx.coroutines.Job? = null
     var playbackNotice: Int? = null
         private set
@@ -433,7 +436,7 @@ class ExoPlayerService : BasePlaybackService() {
                                     "HexStreamProxy",
                                     "candidate=${currentCustomProxy + 1} rejected=${rejection?.reason ?: "playback_error"} code=${error.errorCode}",
                                 )
-                                advanceCustomProxy()
+                                advanceCustomProxy(rejection?.adMarked == true)
                                 return
                             }
                             val responseCode = (player?.playerError?.cause as? HttpDataSource.InvalidResponseCodeException)?.responseCode ?: 0
@@ -598,6 +601,7 @@ class ExoPlayerService : BasePlaybackService() {
                     updatePlaybackState()
                     if (isPlaying) {
                         if (type == STREAM && useCustomProxy) {
+                            proxyPlaybackStartedAt = android.os.SystemClock.elapsedRealtime()
                             android.util.Log.i("HexStreamProxy", "playing candidate=${currentCustomProxy + 1} height=${player?.videoFormat?.height}")
                         }
                         if (savePositionTimer == null && type != STREAM) {
@@ -766,6 +770,9 @@ class ExoPlayerService : BasePlaybackService() {
     private fun start(restorePauseState: Boolean) {
         customProxyRecoveryJob?.cancel()
         customProxyRecoveryJob = null
+        proxyAdRecovery.reset()
+        proxyPlaybackStartedAt = null
+        waitingForProxyRecheck = false
         setPlaybackNotice(null)
         lifecycleScope.launch {
             restorePlaybackState()
@@ -943,6 +950,7 @@ class ExoPlayerService : BasePlaybackService() {
         .takeIf { it.isHierarchical && (it.scheme == "https" || it.scheme == "http") && !it.host.isNullOrBlank() }
 
     private suspend fun loadStream(restorePauseState: Boolean = false, restart: Boolean = false) {
+        if (waitingForProxyRecheck) return
         channelLogin?.let { channelLogin ->
             customProxyMediaSourceFactory = null
             if (useCustomProxy) {
@@ -966,6 +974,7 @@ class ExoPlayerService : BasePlaybackService() {
                     }
                     PlaybackProxyPolicy.Route.DIRECT -> {
                         useCustomProxy = false
+                        android.util.Log.i("HexStreamProxy", "direct_fallback_opted_in")
                         serviceListener?.toast(R.string.hex_proxy_direct_warning, Toast.LENGTH_LONG)
                     }
                     PlaybackProxyPolicy.Route.PROXY -> Unit
@@ -2226,8 +2235,11 @@ class ExoPlayerService : BasePlaybackService() {
         serviceListener?.playbackNotice(resId)
     }
 
-    private fun advanceCustomProxy() {
+    private fun advanceCustomProxy(adMarked: Boolean) {
         if (customProxyRecoveryJob?.isActive == true) return
+        val stablePlayback = proxyPlaybackStartedAt?.let { android.os.SystemClock.elapsedRealtime() - it >= 60_000 } == true
+        proxyAdRecovery.rejected(adMarked, stablePlayback)
+        proxyPlaybackStartedAt = null
         val targetChannel = channelLogin
         customProxyRecoveryJob = lifecycleScope.launch(start = kotlinx.coroutines.CoroutineStart.LAZY) {
             player?.volume = 0f
@@ -2239,7 +2251,22 @@ class ExoPlayerService : BasePlaybackService() {
             currentCustomProxy += 1
             qualities = null
             restorePlaylist = false
-            delay(500.milliseconds)
+            val recheckDelay = if (currentCustomProxy >= customProxyList.orEmpty().size) {
+                proxyAdRecovery.nextDelayMs()
+            } else null
+            if (recheckDelay != null) {
+                waitingForProxyRecheck = true
+                setPlaybackNotice(R.string.hex_proxy_wait_for_ad_break)
+                android.util.Log.i("HexStreamProxy", "waiting_for_clean_proxy delayMs=$recheckDelay")
+                try {
+                    delay(recheckDelay)
+                } finally {
+                    waitingForProxyRecheck = false
+                }
+                currentCustomProxy = 0
+            } else {
+                delay(500.milliseconds)
+            }
             if (targetChannel != null && type == STREAM && channelLogin == targetChannel) loadStream(restart = true)
         }
         customProxyRecoveryJob?.start()
@@ -2251,6 +2278,9 @@ class ExoPlayerService : BasePlaybackService() {
             if (resetStream) customProxyRecoveryJob?.cancel()
             val job = lifecycleScope.launch(start = kotlinx.coroutines.CoroutineStart.LAZY) {
                 if (resetStream) {
+                    proxyAdRecovery.reset()
+                    proxyPlaybackStartedAt = null
+                    waitingForProxyRecheck = false
                     player?.stop()
                     useCustomProxy = prefs().getBoolean(C.PLAYER_USE_CUSTOM_PROXY, true)
                     currentCustomProxy = 0
