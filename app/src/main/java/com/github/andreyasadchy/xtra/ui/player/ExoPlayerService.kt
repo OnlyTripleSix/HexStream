@@ -126,6 +126,7 @@ class ExoPlayerService : BasePlaybackService() {
 
     private var customProxyMediaSourceFactory: HlsMediaSource.Factory? = null
     private var customProxyList: List<CustomProxy>? = null
+    private val rejectedProxyMasters = mutableMapOf<Int, HlsMultivariantPlaylist>()
     private val proxyAdRecovery = PlaybackProxyPolicy.AdRecovery()
     private var proxyPlaybackStartedAt: Long? = null
     private var waitingForProxyRecheck = false
@@ -429,7 +430,9 @@ class ExoPlayerService : BasePlaybackService() {
                             if (useCustomProxy) {
                                 val rejection = generateSequence(error.cause) { it.cause }
                                     .filterIsInstance<ProxyPlaylistRejected>().firstOrNull()
+                                rejectedProxyMasters.remove(currentCustomProxy)
                                 if (rejection?.adMarked == true) {
+                                    rejection.rejectedMaster?.let { rejectedProxyMasters[currentCustomProxy] = it }
                                     serviceListener?.toast(R.string.hex_proxy_ad_retry, Toast.LENGTH_SHORT)
                                 }
                                 android.util.Log.i(
@@ -771,6 +774,7 @@ class ExoPlayerService : BasePlaybackService() {
         customProxyRecoveryJob?.cancel()
         customProxyRecoveryJob = null
         proxyAdRecovery.reset()
+        rejectedProxyMasters.clear()
         proxyPlaybackStartedAt = null
         waitingForProxyRecheck = false
         setPlaybackNotice(null)
@@ -1025,7 +1029,7 @@ class ExoPlayerService : BasePlaybackService() {
                     }
                 } else null
                 if (proxyUrl != null) {
-                    android.util.Log.i("HexStreamProxy", "trying candidate=${currentCustomProxy + 1}")
+                    android.util.Log.i("HexStreamProxy", "trying candidate=${currentCustomProxy + 1} same_session=${currentCustomProxy in rejectedProxyMasters}")
                     playlistUrl = proxyUrl
                 } else {
                     if (useCustomProxy) return
@@ -1276,7 +1280,8 @@ class ExoPlayerService : BasePlaybackService() {
                             )
                         ).apply {
                             setPlaylistParserFactory(CustomHlsPlaylistParserFactory(
-                                if (useCustomProxy) ::validateProxyPlaylist else null,
+                                validate = if (useCustomProxy) ::validateProxyPlaylist else null,
+                                retainedMaster = if (useCustomProxy) rejectedProxyMasters[currentCustomProxy] else null,
                             ))
                             setLoadErrorHandlingPolicy(
                                 if (useCustomProxy) ProxyPlaylistLoadPolicy()
@@ -2279,6 +2284,7 @@ class ExoPlayerService : BasePlaybackService() {
             val job = lifecycleScope.launch(start = kotlinx.coroutines.CoroutineStart.LAZY) {
                 if (resetStream) {
                     proxyAdRecovery.reset()
+                    rejectedProxyMasters.clear()
                     proxyPlaybackStartedAt = null
                     waitingForProxyRecheck = false
                     player?.stop()
@@ -2935,18 +2941,34 @@ class ExoPlayerService : BasePlaybackService() {
 
     class CustomHlsPlaylistParserFactory(
         private val validate: ((HlsMediaPlaylist) -> Unit)? = null,
+        private val retainedMaster: HlsMultivariantPlaylist? = null,
     ) : HlsPlaylistParserFactory {
         override fun createPlaylistParser() = checked(HlsPlaylistParser())
 
         override fun createPlaylistParser(
             multivariantPlaylist: HlsMultivariantPlaylist,
             previousMediaPlaylist: HlsMediaPlaylist?,
-        ) = checked(HlsPlaylistParser(multivariantPlaylist, previousMediaPlaylist))
+        ) = checked(HlsPlaylistParser(multivariantPlaylist, previousMediaPlaylist), multivariantPlaylist)
 
-        private fun checked(parser: ParsingLoadable.Parser<HlsPlaylist>): ParsingLoadable.Parser<HlsPlaylist> {
+        private fun checked(
+            parser: ParsingLoadable.Parser<HlsPlaylist>,
+            master: HlsMultivariantPlaylist? = null,
+        ): ParsingLoadable.Parser<HlsPlaylist> {
             val validate = validate ?: return parser
             return ParsingLoadable.Parser { uri, input ->
-                parser.parse(uri, input).also { if (it is HlsMediaPlaylist) validate(it) }
+                when (val playlist = parser.parse(uri, input)) {
+                    is HlsMultivariantPlaylist -> retainedMaster ?: playlist
+                    is HlsMediaPlaylist -> {
+                        try {
+                            validate(playlist)
+                        } catch (rejected: ProxyPlaylistRejected) {
+                            rejected.rejectedMaster = master
+                            throw rejected
+                        }
+                        playlist
+                    }
+                    else -> playlist
+                }
             }
         }
     }

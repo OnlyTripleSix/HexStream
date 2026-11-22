@@ -4,11 +4,14 @@ import androidx.annotation.OptIn
 import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.hls.playlist.HlsMediaPlaylist
+import androidx.media3.exoplayer.hls.playlist.HlsMultivariantPlaylist
 import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import java.io.IOException
 
+@OptIn(UnstableApi::class)
 internal class ProxyPlaylistRejected(val adMarked: Boolean) : IOException() {
+    var rejectedMaster: HlsMultivariantPlaylist? = null
     val reason get() = if (adMarked) "ad_marked" else "not_playable_live"
 }
 
