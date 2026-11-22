@@ -3,8 +3,7 @@ package com.github.andreyasadchy.xtra.util
 import com.github.andreyasadchy.xtra.model.ui.CustomProxy
 
 object PlaybackProxyPresets {
-    val hosts = listOf("eu2.luminous.dev", "eu.luminous.dev", "lb-na.cdn-perfprod.com",
-        "lb-eu.cdn-perfprod.com", "lb-eu2.cdn-perfprod.com", "lb-as.cdn-perfprod.com")
+    val hosts = listOf("eu2.luminous.dev", "eu.luminous.dev", "lb-as.cdn-perfprod.com")
     val urls = hosts.map { "https://$it/live/\$channel?allow_source=true&allow_audio_only=true&fast_bread=true" }
 
     fun initialItems() = urls.mapIndexed { index, url -> CustomProxy(url, false, index, true) }

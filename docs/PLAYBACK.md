@@ -2,24 +2,21 @@
 
 ## Global playback presets
 
-The custom playback proxy list is stored once in a global database. It is seeded only when the global list is first created and empty. Existing account-specific custom URLs are imported once without deleting account data or overwriting the global list. Switching accounts does not reseed, reorder or clear it.
+The custom playback proxy list is stored once in a global database. It is seeded only when the global list is first created and empty. Existing account-specific custom URLs are imported once without deleting account data or overwriting the global list. Switching accounts does not reseed, reorder or clear it. Updated defaults apply on first seed. Existing lists keep their URLs, order and enabled flags, including previously deleted presets staying deleted.
 
 | Initial order | Preset | URL |
 | --- | --- | --- |
 | 1 | EU2 Luminous | `https://eu2.luminous.dev/live/$channel?allow_source=true&allow_audio_only=true&fast_bread=true` |
 | 2 | EU Luminous | `https://eu.luminous.dev/live/$channel?allow_source=true&allow_audio_only=true&fast_bread=true` |
-| 3 | PerfProd North America | `https://lb-na.cdn-perfprod.com/live/$channel?allow_source=true&allow_audio_only=true&fast_bread=true` |
-| 4 | PerfProd Europe | `https://lb-eu.cdn-perfprod.com/live/$channel?allow_source=true&allow_audio_only=true&fast_bread=true` |
-| 5 | PerfProd Europe 2 | `https://lb-eu2.cdn-perfprod.com/live/$channel?allow_source=true&allow_audio_only=true&fast_bread=true` |
-| 6 | PerfProd Asia | `https://lb-as.cdn-perfprod.com/live/$channel?allow_source=true&allow_audio_only=true&fast_bread=true` |
+| 3 | PerfProd Asia | `https://lb-as.cdn-perfprod.com/live/$channel?allow_source=true&allow_audio_only=true&fast_bread=true` |
 
 `$channel` is replaced with the stream’s channel login. Edit, reorder, enable/disable or add custom entries through the existing playback proxy settings. Deleting a preset is respected; account switching does not restore it.
 
 ## Keep the proxy choice honest
 
-With **Playback URL proxies** enabled, HexStream tries your enabled endpoints in the saved order. It stays with the first working endpoint. A transport/playlist failure or detected Twitch ad marker stops that source and tries the next endpoint; a pass never cycles endlessly through the same list.
+With **Playback URL proxies** enabled, HexStream tries your enabled endpoints in the saved order. ExoPlayer checks each parsed media playlist before Media3 can publish it to playback. A master playlist alone is insufficient. A marked, unusable or failed candidate advances to the next endpoint. The same check applies when a live playlist refreshes. Each pass follows the saved order once. A clean replacement uses the regular quality selection and low-delay settings.
 
-When the list runs out, playback stops and displays **Retry playback**. Retry reloads your current enabled list from the beginning. Check **Settings → Playback proxy URLs** to enable or reorder entries. Custom URLs, disabled entries and the six initial Luminous/PerfProd presets are preserved. Changing Twitch accounts changes none of these global choices.
+When the list runs out, playback stops and displays **Retry playback**. Retry reloads your current enabled list from the beginning. Check **Settings → Playback proxy URLs** to enable or reorder entries. Custom URLs and disabled entries are preserved. Changing Twitch accounts changes none of these global choices.
 
 **Allow direct playback if proxies fail** is a separate global option, initially off. Turn it on only if you want direct Twitch playback after the proxy list fails; Twitch may then show ads. The app warns when it takes that route. Disabling playback URL proxies deliberately selects the inherited direct/HTTP/video-swap path. HTTP host/port entries and their recovery behavior remain separate.
 
