@@ -74,6 +74,14 @@ class PlayerSettingsDialog : BottomSheetDialogFragment() {
                 (parentFragment as? PlayerFragment)?.setQualityText()
             }
             if (type == BasePlaybackService.STREAM) {
+                val exoFragment = parentFragment as? ExoPlayerFragment
+                if (exoFragment != null) {
+                    menuPlaybackSource.visibility = View.VISIBLE
+                    menuPlaybackSource.setOnClickListener {
+                        exoFragment.showPlaybackSourceDialog()
+                        dismiss()
+                    }
+                }
                 menuCreateClip.visibility = View.VISIBLE
                 menuCreateClip.setOnClickListener { (parentFragment as? PlayerFragment)?.openChannelAction(false); dismiss() }
                 if (requireContext().prefs().getBoolean(C.PLAYER_MENU_VIEWER_LIST, true)) {

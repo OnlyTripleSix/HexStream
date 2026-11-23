@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.navigation.safeargs)
     alias(libs.plugins.apollo)
+    id("com.chaquo.python") version "17.2.0"
 }
 
 kotlin {
@@ -35,8 +36,9 @@ android {
         minSdk = 24
         targetSdk = 37
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 151
-        versionName = "1.0.0-beta.13"
+        versionCode = 152
+        versionName = "1.0.0-beta.14"
+        ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86") }
     }
 
     buildTypes {
@@ -78,6 +80,18 @@ android {
         "lib/armeabi-v7a/libtranslate_jni.so",
         "lib/armeabi-v7a/liblanguage_id_l2c_jni.so",
     ))
+}
+
+chaquopy {
+    defaultConfig {
+        version = "3.11"
+        providers.environmentVariable("HEXSTREAM_BUILD_PYTHON").orNull?.let { buildPython(it) }
+        pip {
+            install("streamlink==8.3.0")
+            install("lxml==5.3.0")
+            install("pycryptodome==3.21.0")
+        }
+    }
 }
 
 dependencies {

@@ -616,4 +616,9 @@
     <string translatable="false" name="hex_proxy_ad_retry">Ad detected from this proxy. Trying the next enabled endpoint…</string>
     <string translatable="false" name="hex_proxy_direct_warning">Playback proxies exhausted. Direct fallback is enabled; Twitch may show ads.</string>
     <string translatable="false" name="hex_retry_playback">Retry playback</string>
+    <string name="hex_playback_source" translatable="false">Playback source</string>
+    <string name="hex_source_hexstream" translatable="false">HexStream</string>
+    <string name="hex_source_streamlink" translatable="false">Streamlink (on device)</string>
+    <string name="hex_streamlink_unavailable" translatable="false">Streamlink could not play this channel. Retry or switch playback source.</string>
+    <string name="hex_streamlink_no_proxies" translatable="false">Enable a playback proxy or allow direct fallback to use Streamlink.</string>
 </resources>

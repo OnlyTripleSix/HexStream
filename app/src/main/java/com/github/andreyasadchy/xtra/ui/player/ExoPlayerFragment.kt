@@ -40,6 +40,7 @@ import com.github.andreyasadchy.xtra.util.C
 import com.github.andreyasadchy.xtra.util.getAlertDialogBuilder
 import com.github.andreyasadchy.xtra.util.prefs
 import org.json.JSONArray
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.json.JSONException
 
 @OptIn(UnstableApi::class)
@@ -372,7 +373,27 @@ class ExoPlayerFragment : PlayerFragment() {
         playbackService?.seekTo(position)
     }
 
+    fun showPlaybackSourceDialog() {
+        val service = playbackService ?: return
+        if (service.type != BasePlaybackService.STREAM) return
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.hex_playback_source)
+            .setSingleChoiceItems(
+                arrayOf(getString(R.string.hex_source_hexstream), getString(R.string.hex_source_streamlink)),
+                if (service.streamlinkEnabled) 1 else 0,
+            ) { dialog, which ->
+                service.setStreamlinkPlayback(which == 1)
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
     override fun seekToLivePosition() {
+        if (playbackService?.streamlinkEnabled == true) {
+            restartPlayer()
+            return
+        }
         playbackService?.seekToDefaultPosition()
     }
 

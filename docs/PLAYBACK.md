@@ -69,3 +69,13 @@ The Points panel can show the current balance, an available periodic bonus claim
 Claiming a chest and spending points are different actions. Spending requires an explicit confirmation. A submission gate prevents repeated taps or a second confirmation from creating duplicate requests. Mutating operations are not automatically retried on an ambiguous failure; success requires a confirmed response, including a redemption identity for rewards. Read-only balance/reward loads can be retried.
 
 Xtra’s existing automatic bonus preference remains available. Reward availability and Twitch’s internal GraphQL behavior can change. Real point spending is not part of unattended regression testing.
+
+## On-device Streamlink
+
+Open the live player's three-dot menu, choose **Playback source**, then choose **Streamlink (on device)**. Switch back to **HexStream** from the same menu. The choice lasts for the current player session. Chat stays connected while changing video sources.
+
+Streamlink runs inside the app using bundled Python 3.11. It uses the enabled playback URL proxies in their saved order and accepts TTV LOL PRO-compatible HTTP proxy routes configured as `httpproxy://host:port`. Direct fallback follows the existing explicit opt-in. The app supplies channel and playback settings to Streamlink without sharing its signed-in Twitch session. ExoPlayer plays Streamlink's filtered progressive output. This mode uses a single H.264 video and audio rendition. Select a different quality to reopen the feed. The live-edge action reconnects to the current live feed.
+
+The bundled [Streamlink 8.3.0](https://github.com/streamlink/streamlink/tree/8.3.0) and pinned [2bc4 Twitch plug-in 8.3.0-20260701](https://github.com/2bc4/streamlink-ttvlol/releases/tag/8.3.0-20260701) use the BSD 2-Clause license. The vendored plug-in and its license are in the Android app's Python sources. Building this mode requires Python 3.11 on the build machine. Set `HEXSTREAM_BUILD_PYTHON` to its executable if the build cannot locate it.
+
+Streamlink drops marked ad segments. The player can buffer until stream content is available if Twitch and the configured proxy offer only ads during a break.

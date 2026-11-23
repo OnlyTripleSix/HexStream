@@ -16,6 +16,7 @@ import android.media.audiofx.DynamicsProcessing
 import android.media.session.MediaSession
 import android.media.session.PlaybackState
 import android.net.ConnectivityManager
+import android.net.Uri
 import android.net.NetworkCapabilities
 import android.net.http.HttpEngine
 import android.net.http.ProxyOptions
@@ -59,6 +60,7 @@ import androidx.media3.exoplayer.hls.playlist.HlsPlaylist
 import androidx.media3.exoplayer.hls.playlist.HlsPlaylistParserFactory
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy
+import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.exoplayer.upstream.ParsingLoadable
 import com.github.andreyasadchy.xtra.R
 import com.github.andreyasadchy.xtra.XtraApp
@@ -124,6 +126,9 @@ class ExoPlayerService : BasePlaybackService() {
     private var savePositionTimer: Timer? = null
     private var stopServiceTimer: Timer? = null
 
+    var streamlinkEnabled = false
+        private set
+    private var streamlinkRequest = 0
     private var customProxyMediaSourceFactory: HlsMediaSource.Factory? = null
     private var customProxyList: List<CustomProxy>? = null
     private val proxyAdRecovery = PlaybackProxyPolicy.AdRecovery()
@@ -216,7 +221,7 @@ class ExoPlayerService : BasePlaybackService() {
                             serviceListener?.loaded()
                             toggleSubtitles(prefs().getBoolean(C.PLAYER_SUBTITLES_ENABLED, false))
                         }
-                        if (qualities?.find { it.name == VideoQuality.AUTO_QUALITY } != null && quality?.name != VideoQuality.AUDIO_ONLY_QUALITY) {
+                        if (!streamlinkEnabled && qualities?.find { it.name == VideoQuality.AUTO_QUALITY } != null && quality?.name != VideoQuality.AUDIO_ONLY_QUALITY) {
                             changeQuality(quality, saveSelection = !useCustomProxy)
                         }
                     }
@@ -227,6 +232,7 @@ class ExoPlayerService : BasePlaybackService() {
                     updatePlaybackState()
                     updateMetadata()
                     updateNotification()
+                    if (streamlinkEnabled) return
                     if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED && !timeline.isEmpty && qualities?.find { it.name == VideoQuality.AUTO_QUALITY } != null) {
                         if (ignorePlaylistUpdate) {
                             ignorePlaylistUpdate = false
@@ -426,6 +432,11 @@ class ExoPlayerService : BasePlaybackService() {
                     updatePlaybackState()
                     when (type) {
                         STREAM -> {
+                            if (streamlinkEnabled) {
+                                android.util.Log.w(StreamlinkDataSource.TAG, "player_error code=${error.errorCode}")
+                                setPlaybackNotice(R.string.hex_streamlink_unavailable)
+                                return
+                            }
                             if (useCustomProxy) {
                                 val rejection = generateSequence(error.cause) { it.cause }
                                     .filterIsInstance<ProxyPlaylistRejected>().firstOrNull()
@@ -600,7 +611,10 @@ class ExoPlayerService : BasePlaybackService() {
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
                     updatePlaybackState()
                     if (isPlaying) {
-                        if (type == STREAM && useCustomProxy) {
+                        if (streamlinkEnabled) {
+                            android.util.Log.i(StreamlinkDataSource.TAG, "playing height=${player?.videoFormat?.height}")
+                        }
+                        if (!streamlinkEnabled && type == STREAM && useCustomProxy) {
                             proxyPlaybackStartedAt = android.os.SystemClock.elapsedRealtime()
                             android.util.Log.i("HexStreamProxy", "playing candidate=${currentCustomProxy + 1} height=${player?.videoFormat?.height}")
                         }
@@ -768,6 +782,8 @@ class ExoPlayerService : BasePlaybackService() {
     }
 
     private fun start(restorePauseState: Boolean) {
+        streamlinkEnabled = false
+        streamlinkRequest++
         customProxyRecoveryJob?.cancel()
         customProxyRecoveryJob = null
         proxyAdRecovery.reset()
@@ -949,7 +965,73 @@ class ExoPlayerService : BasePlaybackService() {
     private fun customProxyUri(url: String) = (if ("://" in url) url else "https://$url").toUri()
         .takeIf { it.isHierarchical && (it.scheme == "https" || it.scheme == "http") && !it.host.isNullOrBlank() }
 
+    fun setStreamlinkPlayback(enabled: Boolean) {
+        if (type != STREAM || streamlinkEnabled == enabled) return
+        streamlinkEnabled = enabled
+        streamlinkRequest++
+        customProxyRecoveryJob?.cancel()
+        customProxyRecoveryJob = null
+        waitingForProxyRecheck = false
+        player?.stop()
+        if (secondaryPlayer != null) stopSecondaryPlayer()
+        playlistUrl = null
+        restorePlaylist = false
+        if (!enabled) qualities = null
+        restartPlayer(resetProxies = true)
+    }
+
+    private suspend fun loadStreamlink(channel: String, restorePauseState: Boolean) {
+        val active = player ?: return
+        val request = ++streamlinkRequest
+        val proxyUrls = xtraModule.playerRepository.getCustomProxies()
+            .filter { it.enabled }
+            .sortedBy { it.position }
+            .mapNotNull { preset ->
+                val value = preset.url?.trim()?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+                val uri = (if ("://" in value) value else "https://$value").toUri()
+                if (uri.host.isNullOrBlank() || uri.scheme !in listOf("https", "http", "httpproxy")) {
+                    return@mapNotNull null
+                }
+                uri.toString().replace("$" + "channel", "[channel]")
+            }
+        if (!streamlinkEnabled || request != streamlinkRequest || channelLogin != channel || player !== active) return
+        customProxyMediaSourceFactory = null
+        playingAds = false
+        val allowDirect = prefs().getBoolean("hex_allow_direct_fallback", false)
+        if (proxyUrls.isEmpty() && !allowDirect) {
+            setPlaybackNotice(R.string.hex_streamlink_no_proxies)
+            return
+        }
+        setPlaybackNotice(null)
+        val selectedQuality = quality?.name?.takeUnless {
+            it == VideoQuality.AUDIO_ONLY_QUALITY || it == VideoQuality.CHAT_ONLY_QUALITY
+        }
+        val item = MediaItem.fromUri(Uri.Builder().scheme("hexstream-streamlink").authority(channel).build())
+        val factory = androidx.media3.datasource.DataSource.Factory {
+            StreamlinkDataSource(applicationContext, channel, selectedQuality, proxyUrls, allowDirect)
+        }
+        active.setMediaSource(ProgressiveMediaSource.Factory(factory)
+            .setLoadErrorHandlingPolicy(object : DefaultLoadErrorHandlingPolicy(0) {
+                override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo): Long =
+                    androidx.media3.common.C.TIME_UNSET
+            }).createMediaSource(item))
+        active.trackSelectionParameters = active.trackSelectionParameters.buildUpon()
+            .clearOverridesOfType(androidx.media3.common.C.TRACK_TYPE_VIDEO)
+            .setTrackTypeDisabled(androidx.media3.common.C.TRACK_TYPE_VIDEO,
+                quality?.name == VideoQuality.AUDIO_ONLY_QUALITY)
+            .build()
+        active.volume = prefs().getInt(C.PLAYER_VOLUME, 100) / 100f
+        active.setPlaybackSpeed(1f)
+        active.prepare()
+        active.playWhenReady = !restorePauseState || !paused
+        android.util.Log.i(StreamlinkDataSource.TAG, "requested on-device playback")
+    }
+
     private suspend fun loadStream(restorePauseState: Boolean = false, restart: Boolean = false) {
+        if (streamlinkEnabled) {
+            channelLogin?.let { loadStreamlink(it, restorePauseState) }
+            return
+        }
         if (waitingForProxyRecheck) return
         channelLogin?.let { channelLogin ->
             customProxyMediaSourceFactory = null
@@ -1062,6 +1144,7 @@ class ExoPlayerService : BasePlaybackService() {
                     playlistUrl = url
                 }
             }
+            if (streamlinkEnabled || this.channelLogin != channelLogin) return
             val url = playlistUrl
             if (url != null) {
                 player?.let { player ->
@@ -1583,6 +1666,21 @@ class ExoPlayerService : BasePlaybackService() {
     fun changeQuality(selectedQuality: VideoQuality?, saveSelection: Boolean = true) {
         previousQuality = quality
         quality = selectedQuality
+        if (streamlinkEnabled && type == STREAM) {
+            val name = selectedQuality?.name
+            val previousMode = previousQuality?.name
+            when {
+                name == VideoQuality.CHAT_ONLY_QUALITY -> player?.stop()
+                name == VideoQuality.AUDIO_ONLY_QUALITY -> {
+                    player?.let { active ->
+                        active.trackSelectionParameters = active.trackSelectionParameters.buildUpon()
+                            .setTrackTypeDisabled(androidx.media3.common.C.TRACK_TYPE_VIDEO, true).build()
+                    }
+                }
+                name != previousMode -> restartPlayer()
+            }
+            return
+        }
         quality?.let { quality ->
             player?.let { player ->
                 player.currentMediaItem?.let { mediaItem ->
@@ -2331,7 +2429,7 @@ class ExoPlayerService : BasePlaybackService() {
                                 setTrackTypeDisabled(androidx.media3.common.C.TRACK_TYPE_VIDEO, true)
                             }.build()
                         }
-                        if (prefs().getBoolean(C.PLAYER_USE_BACKGROUND_AUDIO_TRACK, false)) {
+                        if (!streamlinkEnabled && prefs().getBoolean(C.PLAYER_USE_BACKGROUND_AUDIO_TRACK, false)) {
                             quality.url?.let { url ->
                                 val position = player.currentPosition
                                 if (qualities?.find { it.name == VideoQuality.AUTO_QUALITY } != null) {
@@ -2367,7 +2465,7 @@ class ExoPlayerService : BasePlaybackService() {
                                     setTrackTypeDisabled(androidx.media3.common.C.TRACK_TYPE_VIDEO, true)
                                 }.build()
                             }
-                            if (prefs().getBoolean(C.PLAYER_USE_BACKGROUND_AUDIO_TRACK, false)) {
+                            if (!streamlinkEnabled && prefs().getBoolean(C.PLAYER_USE_BACKGROUND_AUDIO_TRACK, false)) {
                                 quality.url?.let { url ->
                                     val position = player.currentPosition
                                     if (qualities?.find { it.name == VideoQuality.AUTO_QUALITY } != null) {

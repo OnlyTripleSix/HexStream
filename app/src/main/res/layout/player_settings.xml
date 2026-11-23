@@ -10,6 +10,10 @@
         android:orientation="vertical"
         android:padding="?attr/dialogLayoutPadding">
 
+        <Button android:id="@+id/menuPlaybackSource" style="?attr/bottomSheetButtonStyle"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/hex_playback_source" android:visibility="gone" />
+
         <Button android:id="@+id/menuCreateClip" style="?attr/bottomSheetButtonStyle"
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:text="@string/hex_create_clip" android:visibility="gone" />
