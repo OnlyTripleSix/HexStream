@@ -43,11 +43,13 @@ internal object AppUpdateInstaller {
         callbackOptions()?.toBundle()
     )
 
+    @Synchronized
     fun install(context: Context, apk: ByteArray) {
         require(apk.isNotEmpty())
         val installer = context.packageManager.packageInstaller
-        // Retire unfinished attempts owned by this app; never touch another installer's sessions.
-        installer.mySessions.filter { !it.isActive && it.appPackageName == context.packageName }.forEach {
+        // A new confirmed install supersedes older attempts for this app, including stalled confirmations.
+        // mySessions is scoped to our installer UID, and the target package must also match.
+        installer.mySessions.filter { it.appPackageName == context.packageName }.forEach {
             runCatching { installer.abandonSession(it.sessionId) }
         }
         val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL).apply {

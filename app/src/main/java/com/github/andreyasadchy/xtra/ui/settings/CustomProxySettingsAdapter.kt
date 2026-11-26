@@ -49,6 +49,13 @@ class CustomProxySettingsAdapter(
 
     fun updateStatus(binding: FragmentProxySettingsListItemBinding, context: Context, item: CustomProxy) {
         with(binding) {
+            if (com.github.andreyasadchy.xtra.util.PlaybackProxyPresets.isHttpTunnel(item.url)) {
+                status.visibility = View.VISIBLE
+                status.text = context.getString(R.string.hex_http_proxy_status)
+                val color = context.obtainStyledAttributes(intArrayOf(android.R.attr.textColorSecondary)).use { it.getResourceId(0, 0) }
+                status.setTextColor(context.resources.getColor(color, context.theme))
+                return
+            }
             if (!item.url.isNullOrBlank()) {
                 status.visibility = View.VISIBLE
                 val online = statusMap?.get(item.url)
@@ -88,9 +95,14 @@ class CustomProxySettingsAdapter(
                     false
                 }
                 text.text = item.url?.takeIf { it.isNotBlank() }?.let {
-                    it.toUri().host ?: "https://$it".toUri().host
+                    when (com.github.andreyasadchy.xtra.util.PlaybackProxyPresets.httpPresetIndex(it)) {
+                        0 -> context.getString(R.string.hex_ttv_proxy_firefox)
+                        1 -> context.getString(R.string.hex_ttv_proxy_chromium)
+                        else -> it.toUri().host ?: "https://$it".toUri().host
+                    }
                 }
                 updateStatus(binding, context, item)
+                checkBox.setOnCheckedChangeListener(null)
                 checkBox.isChecked = item.enabled
                 checkBox.setOnCheckedChangeListener { _, isChecked ->
                     item.enabled = isChecked

@@ -101,7 +101,7 @@ class CustomProxySettingsViewModel(
     }
 
     private suspend fun getProxyStatus(networkLibrary: String?, proxyUrl: String?) = withContext(Dispatchers.IO) {
-        if (!proxyUrl.isNullOrBlank()) {
+        if (!proxyUrl.isNullOrBlank() && !com.github.andreyasadchy.xtra.util.PlaybackProxyPresets.isHttpTunnel(proxyUrl)) {
             val url = (proxyUrl.toUri().takeIf { it.host != null } ?: "https://$proxyUrl".toUri()).buildUpon().apply {
                 path("ping")
             }.build().toString()

@@ -5,6 +5,14 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class PlaybackProxyPresetsTest {
+    @Test fun httpTunnelsAreDistinguishedFromUrlProxiesForStatusChecksAndNames() {
+        assertTrue(PlaybackProxyPresets.isHttpTunnel("  HTTPPROXY://firefox.api.cdn-perfprod.com:2023 "))
+        assertFalse(PlaybackProxyPresets.isHttpTunnel("https://eu2.luminous.dev"))
+        assertFalse(PlaybackProxyPresets.isHttpTunnel(null))
+        assertEquals(0, PlaybackProxyPresets.httpPresetIndex(PlaybackProxyPresets.httpUrls[0]))
+        assertEquals(1, PlaybackProxyPresets.httpPresetIndex(PlaybackProxyPresets.httpUrls[1]))
+        assertEquals(-1, PlaybackProxyPresets.httpPresetIndex("httpproxy://fixture.invalid:2023"))
+    }
     @Test fun defaultsHaveRequiredPreferenceOrderAndExactUrls() {
         val items = PlaybackProxyPresets.initialItems()
         assertEquals(listOf("eu2.luminous.dev", "eu.luminous.dev", "lb-na.cdn-perfprod.com",

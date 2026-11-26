@@ -27,7 +27,8 @@ class UpdateInstallActivity : Activity() {
                 tokenPrefs().edit { putLong(C.UPDATE_LAST_CHECKED, System.currentTimeMillis()) }
                 startActivity(it)
             }
-        } else if (intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE) != PackageInstaller.STATUS_SUCCESS) {
+        } else if (intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE) !in
+            listOf(PackageInstaller.STATUS_SUCCESS, PackageInstaller.STATUS_FAILURE_ABORTED)) {
             AppUpdateInstaller.showFailure(this)
         }
         finish()

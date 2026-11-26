@@ -125,6 +125,9 @@ class SettingsActivity : AppCompatActivity() {
             true
         })
         binding.toolbar.setupWithNavController(navController, appBarConfiguration)
+        if (savedInstanceState == null && intent.getBooleanExtra(EXTRA_OPEN_PLAYBACK_PROXIES, false)) {
+            openPlaybackProxyList()
+        }
         binding.toolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.search -> {
@@ -157,6 +160,13 @@ class SettingsActivity : AppCompatActivity() {
                 return false
             }
         })
+    }
+
+    fun openPlaybackProxyList() {
+        val host = supportFragmentManager.findFragmentById(R.id.navHostFragment) as NavHostFragment
+        if (host.navController.currentDestination?.id != R.id.customProxySettingsFragment) {
+            host.navController.navigate(SettingsNavGraphDirections.actionGlobalCustomProxySettingsFragment())
+        }
     }
 
     fun showDragListDialog(list: List<SettingsDragListItem>, prefKey: String, title: CharSequence?) {
@@ -258,6 +268,7 @@ class SettingsActivity : AppCompatActivity() {
 
     companion object {
         const val KEY_CHANGED = "changed"
+        const val EXTRA_OPEN_PLAYBACK_PROXIES = "hex_open_playback_proxies"
     }
 
     class SettingsFragment : MaterialPreferenceFragment() {
@@ -273,7 +284,7 @@ class SettingsActivity : AppCompatActivity() {
             findPreference<Preference>("hexstream_about")?.setOnPreferenceClickListener {
                 AlertDialog.Builder(requireContext())
                     .setTitle(getString(R.string.hex_about_title, com.github.andreyasadchy.xtra.BuildConfig.VERSION_NAME))
-                    .setMessage(R.string.hex_about_credits)
+                    .setMessage(getString(R.string.hex_about_credits) + "\n\n" + getString(R.string.hex_ttv_credits))
                     .setPositiveButton(R.string.hex_about_source) { _, _ ->
                         startActivity(Intent(Intent.ACTION_VIEW, "https://github.com/ItsTripleSix/HexStream".toUri()))
                     }
@@ -1218,11 +1229,26 @@ class SettingsActivity : AppCompatActivity() {
     class PlaybackSettingsFragment : MaterialPreferenceFragment() {
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.playback_preferences, rootKey)
+            findPreference<Preference>("hex_playback_mode_help")?.setOnPreferenceClickListener {
+                com.github.andreyasadchy.xtra.ui.player.PlaybackModeHelp.show(requireActivity())
+                true
+            }
             findPreference<Preference>("video_swap_settings")?.setOnPreferenceClickListener {
                 requireActivity().findViewById<AppBarLayout>(R.id.appBar)?.setExpanded(true)
                 findNavController().navigate(SettingsNavGraphDirections.actionGlobalVideoSwapSettingsFragment())
                 true
             }
+        }
+
+        override fun onDisplayPreferenceDialog(preference: Preference) {
+            if (preference is ListPreference && preference.key == "hex_playback_mode") {
+                com.github.andreyasadchy.xtra.ui.player.PlaybackModeHelp.showSelector(
+                    requireActivity(), preference.findIndexOfValue(preference.value).coerceAtLeast(0)
+                ) { which ->
+                    val value = preference.entryValues[which].toString()
+                    if (preference.callChangeListener(value)) preference.value = value
+                }
+            } else super.onDisplayPreferenceDialog(preference)
         }
 
         override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

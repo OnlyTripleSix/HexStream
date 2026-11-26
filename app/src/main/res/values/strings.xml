@@ -617,8 +617,8 @@
     <string translatable="false" name="hex_proxy_direct_warning">Playback proxies exhausted. Direct fallback is enabled; Twitch may show ads.</string>
     <string translatable="false" name="hex_retry_playback">Retry playback</string>
     <string name="hex_playback_source" translatable="false">Playback mode</string>
-    <string name="hex_source_automatic" translatable="false">Automatic (recommended)</string>
-    <string name="hex_source_hexstream" translatable="false">Standard (advanced settings)</string>
+    <string name="hex_source_automatic" translatable="false">Automatic (Streamlink)</string>
+    <string name="hex_source_hexstream" translatable="false">Standard (original player)</string>
     <string name="hex_help_automatic_playback" translatable="false">Automatic filters marked video ads and reconnects for you. Example: leave it selected for everyday watching; if only ads are available, playback waits for stream content. The choice is shared across your accounts. Standard uses the separate proxy and player settings. Automatic requires ExoPlayer.</string>
     <string name="hex_automatic_connecting" translatable="false">Finding a stream…</string>
     <string name="hex_automatic_waiting" translatable="false">Waiting for an ad-free stream…</string>
@@ -628,4 +628,12 @@
     <string name="hex_streamlink_no_proxies" translatable="false">No enabled playback proxy is available. Check the proxy list in Settings.</string>
     <string name="update_install_permission">Allow HexStream to install updates, then return and check for updates again.</string>
     <string name="update_install_failed">Update installation did not finish. Try again, or download the APK from the HexStream GitHub releases.</string>
+    <string name="hex_modes_help" translatable="false">How these modes work</string>
+    <string name="hex_ttv_credits" translatable="false">TTV LOL PRO compatibility through the Streamlink plug-in. TTV LOL PRO: Younes Aassila and contributors. PerfProd proxy services: Marc Gómez (zGato) and contributors.</string>
+    <string name="hex_help_modes_link" translatable="false">Plain explanations, examples and the proxy lists each mode uses. Example: read this before choosing a mode.</string>
+    <string name="hex_open_proxy_list" translatable="false">Open proxy list</string>
+    <string name="hex_http_proxy_status" translatable="false">Automatic / Streamlink • connection checked when opening a stream</string>
+    <string name="hex_ttv_proxy_firefox" translatable="false">TTV LOL PRO V2 — Firefox</string>
+    <string name="hex_ttv_proxy_chromium" translatable="false">TTV LOL PRO V2 — Chromium</string>
+    <string name="hex_modes_help_text" translatable="false"><b>Automatic (Streamlink) — start here</b>\nUses Streamlink to fetch live video, with automatic retries and filtering of recognized ads. If only ad video is available, it may pause until stream video returns.\nExample: a commercial starts; you may get a short wait instead of watching it.\n\n<b>Standard — the original player</b>\nCan try the next enabled URL proxy when it detects an ad. Use it as a backup if Automatic will not load a stream or keeps buffering, or if you prefer the original player controls.\n\n<b>Where the proxies come from</b>\nSettings → Playback URL presets and custom endpoints. This list is shared across your accounts. Use Open proxy list below to view, enable or reorder entries.\n\nAutomatic prefers enabled HTTP entries, including the TTV LOL PRO V2 Firefox/Chromium presets. It also honors HTTP host and port proxies configured for the active account, then compatible URL entries. Standard uses enabled Luminous/PerfProd URL entries in your chosen order.\n\nThe TTV LOL PRO connection is supplied through the credited Streamlink plug-in. No browser extension installation is needed. Public proxies can still fail and neither mode guarantees zero ads.</string>
 </resources>

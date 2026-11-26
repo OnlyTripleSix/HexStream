@@ -376,17 +376,9 @@ class ExoPlayerFragment : PlayerFragment() {
     fun showPlaybackSourceDialog() {
         val service = playbackService ?: return
         if (service.type != BasePlaybackService.STREAM) return
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.hex_playback_source)
-            .setSingleChoiceItems(
-                arrayOf(getString(R.string.hex_source_automatic), getString(R.string.hex_source_hexstream)),
-                if (service.streamlinkEnabled) 0 else 1,
-            ) { dialog, which ->
-                service.setStreamlinkPlayback(which == 0)
-                dialog.dismiss()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        PlaybackModeHelp.showSelector(requireActivity(), if (service.streamlinkEnabled) 0 else 1) { which ->
+            service.setStreamlinkPlayback(which == 0)
+        }
     }
 
     override fun seekToLivePosition() {

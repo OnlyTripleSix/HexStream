@@ -20,7 +20,7 @@ The filtering workflow and compatible list format were inspired by **[Unwanted T
 
 ## Get HexStream
 
-Download the APK from [Releases](https://github.com/OnlyTripleSix/HexStream/releases). The current release is **1.0.0-beta.18**, built locally with Gradle and the Android SDK. Android 7.0 or newer is required. No GitHub Actions build is used.
+Download the APK from [Releases](https://github.com/OnlyTripleSix/HexStream/releases). The current release is **1.0.0-beta.19**, built locally with Gradle and the Android SDK. Android 7.0 or newer is required. No GitHub Actions build is used.
 
 **Open a stream. Watch the game.** Automatic is the default live playback mode: it selects enabled HTTP/V2 proxies, filters marked video ads, and reconnects for you. If only ad content is available, it waits for stream content. Standard keeps the original player and advanced controls. Neither mode can guarantee public-proxy uptime or identify every unmarked ad. Pinch with two fingers to zoom the video up to 400% without enlarging chat. [Playback, modes and zoom →](docs/PLAYBACK.md)
 

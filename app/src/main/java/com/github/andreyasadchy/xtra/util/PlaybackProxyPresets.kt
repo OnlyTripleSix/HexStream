@@ -9,6 +9,10 @@ object PlaybackProxyPresets {
     val httpUrls = listOf("httpproxy://firefox.api.cdn-perfprod.com:2023",
         "httpproxy://chromium.api.cdn-perfprod.com:2023")
 
+    fun isHttpTunnel(url: String?) = url?.trim()?.startsWith("httpproxy://", true) == true
+
+    fun httpPresetIndex(url: String?) = httpUrls.indexOfFirst { it.equals(url?.trim(), true) }
+
     fun initialItems() = urls.mapIndexed { index, url -> CustomProxy(url, false, index, true) }
 
     /** Called by the global store once. Never revive an emptied/disabled list or replace a custom tunnel. */

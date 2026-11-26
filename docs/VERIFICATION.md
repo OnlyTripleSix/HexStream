@@ -1,5 +1,13 @@
 # Verification and known limits
 
+## Playback help and proxy status: 1.0.0-beta.19
+
+New device fixtures cover opening the shared proxy list from help, preserving the selected mode, cancelling the selector, clear HTTP preset names/status, and recycling a proxy row without changing another entry. The extra help row brings the settings inventory to 234 explained rows. Mode help is available from Settings and the live-player selector; it states that Automatic is Streamlink and distinguishes its HTTP entries from Standard's URL presets. Help and labels are English, following the existing settings-help convention.
+
+The HTTP entries no longer receive an invalid website-style `/ping` probe or a false Offline label. Their informational status says the connection is checked when opening a stream; it is not a health or ad-suppression claim. Public providers can still fail. No playback/filter/fallback policy is changed by this presentation fix.
+
+The beta.18 online upgrade from the local beta.17 candidate completed through HexStream's own download, permission request and Android confirmation. Installed bytes matched the public APK, app UID and original install time were preserved, and a second check displayed No updates found. No personal data was cleared. Beta.19 also supersedes older app-owned confirmations when starting a new approved installation; other installers' sessions remain outside its scope.
+
 ## Update installer: 1.0.0-beta.18
 
 The corrected installer passed the **238 JVM tests**, **nine Python tests** and **41 account-free physical-device tests** in the local beta.17 candidate. The two added device checks exercise the framework's creator launch option, private callback activity, mutable installer response and distinct callback identities for separate sessions. The Android 15 phone exposed the original blocked handoff during a real download; the installer now explicitly supplies the launch option required by [Android's activity security rules](https://developer.android.com/guide/components/activities/secure-bal). Android 16 and later use the narrower visible-app mode. The complete signed-in follow fixture remains excluded.

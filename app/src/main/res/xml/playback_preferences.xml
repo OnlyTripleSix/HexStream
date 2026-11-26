@@ -11,6 +11,13 @@
         app:iconSpaceReserved="false"
         app:singleLineTitle="false" />
 
+    <Preference
+        android:key="hex_playback_mode_help"
+        android:title="@string/hex_modes_help"
+        android:summary="@string/hex_help_modes_link"
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false" />
+
     <EditTextPreference
         android:defaultValue="3000"
         android:key="proxy_timeout"
