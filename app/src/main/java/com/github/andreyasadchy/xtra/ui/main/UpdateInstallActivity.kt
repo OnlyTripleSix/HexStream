@@ -22,10 +22,13 @@ class UpdateInstallActivity : Activity() {
                 @Suppress("DEPRECATION")
                 intent.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)
             }
+            if (confirmation == null) AppUpdateInstaller.showFailure(this)
             confirmation?.let {
                 tokenPrefs().edit { putLong(C.UPDATE_LAST_CHECKED, System.currentTimeMillis()) }
                 startActivity(it)
             }
+        } else if (intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE) != PackageInstaller.STATUS_SUCCESS) {
+            AppUpdateInstaller.showFailure(this)
         }
         finish()
     }

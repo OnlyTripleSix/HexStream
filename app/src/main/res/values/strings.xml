@@ -626,4 +626,6 @@
     <string name="hex_source_streamlink" translatable="false">Streamlink (on device)</string>
     <string name="hex_streamlink_unavailable" translatable="false">Could not reconnect. Tap Retry to try again.</string>
     <string name="hex_streamlink_no_proxies" translatable="false">No enabled playback proxy is available. Check the proxy list in Settings.</string>
+    <string name="update_install_permission">Allow HexStream to install updates, then return and check for updates again.</string>
+    <string name="update_install_failed">Update installation did not finish. Try again, or download the APK from the HexStream GitHub releases.</string>
 </resources>

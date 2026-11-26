@@ -344,6 +344,7 @@ class MainActivity : AppCompatActivity() {
                                         Toast.makeText(this@MainActivity, R.string.no_browser_found, Toast.LENGTH_LONG).show()
                                     }
                                 } else {
+                                    if (!AppUpdateInstaller.ensurePermission(this@MainActivity)) return@setPositiveButton
                                     val binding = DialogUpdateDownloadBinding.inflate(layoutInflater)
                                     updateDownloadDialogBinding = binding
                                     val size = viewModel.updateSize

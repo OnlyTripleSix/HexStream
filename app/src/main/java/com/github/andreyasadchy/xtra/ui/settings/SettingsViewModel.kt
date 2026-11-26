@@ -3,10 +3,8 @@ package com.github.andreyasadchy.xtra.ui.settings
 import kotlinx.serialization.json.jsonObject
 
 import android.annotation.SuppressLint
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageInstaller
 import android.net.Uri
 import android.net.http.HttpEngine
 import android.provider.DocumentsContract
@@ -393,28 +391,14 @@ class SettingsViewModel(
                     }
                 }
                 if (response != null && response.isNotEmpty()) {
-                    val packageInstaller = applicationContext.packageManager.packageInstaller
-                    val sessionId = packageInstaller.createSession(
-                        PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
-                    )
-                    val session = packageInstaller.openSession(sessionId)
-                    session.openWrite("package", 0, response.size.toLong()).use {
-                        it.write(response)
-                    }
-                    session.commit(
-                        PendingIntent.getActivity(
-                            applicationContext,
-                            0,
-                            Intent(applicationContext, com.github.andreyasadchy.xtra.ui.main.UpdateInstallActivity::class.java).apply {
-                                setAction(MainActivity.INTENT_INSTALL_UPDATE)
-                            },
-                            PendingIntent.FLAG_MUTABLE
-                        ).intentSender
-                    )
-                    session.close()
+                    com.github.andreyasadchy.xtra.ui.main.AppUpdateInstaller.install(applicationContext, response)
+                } else {
+                    com.github.andreyasadchy.xtra.ui.main.AppUpdateInstaller.showFailure(applicationContext)
                 }
-            } catch (e: Exception) {
-
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                com.github.andreyasadchy.xtra.ui.main.AppUpdateInstaller.showFailure(applicationContext)
             }
             closeUpdateDialog.emit(true)
         }

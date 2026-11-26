@@ -518,20 +518,6 @@ class SettingsActivity : AppCompatActivity() {
                 repeatOnLifecycle(Lifecycle.State.STARTED) {
                     viewModel.updateUrl.collectLatest {
                         if (it != null) {
-                            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
-                                !requireContext().prefs().getBoolean(C.UPDATE_USE_BROWSER, false) &&
-                                !requireContext().packageManager.canRequestPackageInstalls()
-                            ) {
-                                try {
-                                    val intent = Intent(
-                                        Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-                                        "package:${requireContext().packageName}".toUri()
-                                    )
-                                    startActivity(intent)
-                                } catch (e: ActivityNotFoundException) {
-
-                                }
-                            }
                             requireActivity().getAlertDialogBuilder()
                                 .setTitle(getString(R.string.update_available))
                                 .setMessage(getString(R.string.update_message))
@@ -549,6 +535,7 @@ class SettingsActivity : AppCompatActivity() {
                                             Toast.makeText(requireContext(), R.string.no_browser_found, Toast.LENGTH_LONG).show()
                                         }
                                     } else {
+                                        if (!com.github.andreyasadchy.xtra.ui.main.AppUpdateInstaller.ensurePermission(requireActivity())) return@setPositiveButton
                                         val binding = DialogUpdateDownloadBinding.inflate(layoutInflater)
                                         updateDownloadDialogBinding = binding
                                         val size = viewModel.updateSize
@@ -1398,7 +1385,7 @@ class SettingsActivity : AppCompatActivity() {
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.update_preferences, rootKey)
             findPreference<SwitchPreferenceCompat>("update_check_enabled")?.setOnPreferenceChangeListener { _, newValue ->
-                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
                     newValue == true &&
                     !requireContext().prefs().getBoolean(C.UPDATE_USE_BROWSER, false) &&
                     !requireContext().packageManager.canRequestPackageInstalls()
@@ -1416,7 +1403,7 @@ class SettingsActivity : AppCompatActivity() {
                 true
             }
             findPreference<SwitchPreferenceCompat>("update_use_browser")?.setOnPreferenceChangeListener { _, newValue ->
-                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
                     newValue == false &&
                     requireContext().prefs().getBoolean(C.UPDATE_CHECK_ENABLED, false) &&
                     !requireContext().packageManager.canRequestPackageInstalls()
