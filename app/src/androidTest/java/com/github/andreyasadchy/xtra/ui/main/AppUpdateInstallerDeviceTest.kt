@@ -17,7 +17,7 @@ class AppUpdateInstallerDeviceTest {
             assertNotNull(options)
             val expected = if (Build.VERSION.SDK_INT >= 36) ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_IF_VISIBLE
                 else ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
-            assertEquals(expected, ActivityOptions.fromBundle(options).pendingIntentCreatorBackgroundActivityStartMode)
+            assertEquals(expected, options!!.pendingIntentCreatorBackgroundActivityStartMode)
         } else assertNull(options)
     }
 

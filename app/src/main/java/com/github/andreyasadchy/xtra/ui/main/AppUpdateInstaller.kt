@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
 import android.os.Build
-import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
@@ -29,11 +28,11 @@ internal object AppUpdateInstaller {
     }
 
     @Suppress("DEPRECATION")
-    internal fun callbackOptions(): Bundle? = if (Build.VERSION.SDK_INT >= 34) {
+    internal fun callbackOptions(): ActivityOptions? = if (Build.VERSION.SDK_INT >= 34) {
         ActivityOptions.makeBasic().setPendingIntentCreatorBackgroundActivityStartMode(
             if (Build.VERSION.SDK_INT >= 36) ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_IF_VISIBLE
             else ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
-        ).toBundle()
+        )
     } else null
 
     internal fun callback(context: Context, sessionId: Int): PendingIntent = PendingIntent.getActivity(
@@ -41,13 +40,18 @@ internal object AppUpdateInstaller {
         sessionId,
         Intent(context, UpdateInstallActivity::class.java).setAction(MainActivity.INTENT_INSTALL_UPDATE),
         PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-        callbackOptions()
+        callbackOptions()?.toBundle()
     )
 
     fun install(context: Context, apk: ByteArray) {
         require(apk.isNotEmpty())
         val installer = context.packageManager.packageInstaller
+        // Retire unfinished attempts owned by this app; never touch another installer's sessions.
+        installer.mySessions.filter { !it.isActive && it.appPackageName == context.packageName }.forEach {
+            runCatching { installer.abandonSession(it.sessionId) }
+        }
         val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL).apply {
+            setAppPackageName(context.packageName)
             if (Build.VERSION.SDK_INT >= 31) setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_REQUIRED)
         }
         val sessionId = installer.createSession(params)
