@@ -1,5 +1,11 @@
 # Verification and known limits
 
+## Update installer: 1.0.0-beta.18
+
+The corrected installer passed the **238 JVM tests**, **nine Python tests** and **41 account-free physical-device tests** in the local beta.17 candidate. The two added device checks exercise the framework's creator launch option, private callback activity, mutable installer response and distinct callback identities for separate sessions. The Android 15 phone exposed the original blocked handoff during a real download; the installer now explicitly supplies the launch option required by [Android's activity security rules](https://developer.android.com/guide/components/activities/secure-bal). Android 16 and later use the narrower visible-app mode. The complete signed-in follow fixture remains excluded.
+
+Both update entry points request Android's install permission before downloading and explain how to return and retry. Installation still needs Android's normal user confirmation. A new attempt retires only inactive sessions owned by HexStream and targeting its own package; no installed app data or other installer's session is cleared. Failed attempts show a fixed explanation without logging server responses or private values. The final release repeats unit/static/build checks and the isolated phone suite; the online in-app upgrade is checked separately against the published assets. One Android 15 phone does not establish behavior on every OS version.
+
 ## Automatic playback: 1.0.0-beta.16
 
 All **238 JVM tests /36 suites** and **nine host Python routing/filter tests** pass. Coverage includes persistent token/master/media-playlist routing, low-latency reload URLs, excluding video bytes and lookalike hosts, route cleanup/session isolation, empty/error candidate fallback, withholding marked ad segments, status transitions, global preset additions, bounded reconnects, paused recovery and update-version comparisons. Android lint reports **zero errors and 30 reviewed warnings** covering dependency availability and resource/layout/preference suggestions. No check was disabled.

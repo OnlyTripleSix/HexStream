@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0-beta.18
+
+- Fix Android 15 blocking the updater's installation confirmation. Explicit private installer callbacks use the supported platform launch mode and a separate identity for each session.
+- Ask for Android's one-time HexStream install permission before downloading, from both update entry points. Explain failures instead of silently closing the download dialog.
+- Retire unfinished install attempts belonging to HexStream when starting another update. Keep all app data and other installers' sessions intact.
+- Retain beta.16 Automatic / Standard playback, marked-ad filtering and installed-version comparisons. Beta.17 was a local updater verification candidate.
+
 ## 1.0.0-beta.16
 
 - Make **Automatic (recommended)** the default live ExoPlayer mode. Filter marked video-ad segments before output, reconnect within a bounded budget, and show a short waiting message while ad-free content is unavailable. Keep the original player under **Standard (advanced settings)**.

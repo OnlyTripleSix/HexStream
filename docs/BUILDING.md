@@ -4,7 +4,7 @@
 
 Get the APK from [the official HexStream releases](https://github.com/OnlyTripleSix/HexStream/releases). Check its SHA-256 against the accompanying checksum file if you verify downloads. Android may ask you to allow installation from the browser/file manager you use.
 
-The current package is `com.github.andreyasadchy.xtra.prototype`. The inherited namespace and package are retained for compatibility with existing HexStream installations; the launcher name is HexStream. The current release is **1.0.0-beta.16**, version code **154**. See [playback and zoom](PLAYBACK.md) and [channel tools](CHANNEL-TOOLS.md) for instructions and limits. Do not uninstall an existing working installation merely to update it: a matching package/signature update preserves its app data.
+The current package is `com.github.andreyasadchy.xtra.prototype`. The inherited namespace and package are retained for compatibility with existing HexStream installations; the launcher name is HexStream. The current release is **1.0.0-beta.18**, version code **156**. See [playback and zoom](PLAYBACK.md) and [channel tools](CHANNEL-TOOLS.md) for instructions and limits. Do not uninstall an existing working installation merely to update it: a matching package/signature update preserves its app data.
 
 The published APK uses the existing HexStream signing certificate. Its SHA-256 certificate fingerprint is:
 
@@ -13,6 +13,12 @@ The published APK uses the existing HexStream signing certificate. Its SHA-256 c
 ```
 
 An APK signed with your own key cannot replace that installation while preserving Android’s signature identity. Use a distinct package for your own development build, or a separate test device/profile. The `qa` build type uses `com.github.andreyasadchy.xtra.qa` and is intended for isolated device checks.
+
+## Built-in updates
+
+Use Settings → Check for updates. Keep “Open update link in browser” off for the built-in download and Android installer. The first time, Android may ask you to allow HexStream to install updates. Allow that app-specific permission, return to HexStream and check again; Android still asks you to confirm the installation. Do not uninstall first. After installation, checking again should report no updates for the same version.
+
+If an attempt fails, retry or use the APK from the official release page. The updater compares version numbers rather than treating a new download timestamp as a new app version.
 
 ## Requirements
 
