@@ -6,6 +6,7 @@
 - Clearly name the two preloaded TTV LOL PRO V2 HTTP entries. Stop applying the website `/ping` check to HTTP tunnels, which incorrectly labeled them Offline. Their connection is tested by real playback; this label does not claim availability or ad-free results.
 - Preserve proxy enabled states when recycling list rows. Keep custom entries, order and deliberate removals unchanged.
 - Supersede older unfinished install confirmations for this app when a new update installation is approved, while keeping other installers and app data untouched.
+- On launch, retire app-owned install attempts older than the installed app update. Keep newer pending attempts and other target packages intact.
 - Retain the verified beta.18 native updater and add TTV LOL PRO/PerfProd attribution. New explanatory help remains English, consistent with the existing settings help.
 
 ## 1.0.0-beta.18

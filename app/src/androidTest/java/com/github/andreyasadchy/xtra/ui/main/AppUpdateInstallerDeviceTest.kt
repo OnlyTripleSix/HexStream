@@ -8,6 +8,22 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class AppUpdateInstallerDeviceTest {
+    @Test fun startupCleanupPreservesANewUncommittedAttempt() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        assertEquals("com.github.andreyasadchy.xtra.qa", context.packageName)
+        if (Build.VERSION.SDK_INT < 30) return
+        val installer = context.packageManager.packageInstaller
+        val params = android.content.pm.PackageInstaller.SessionParams(android.content.pm.PackageInstaller.SessionParams.MODE_FULL_INSTALL)
+            .apply { setAppPackageName(context.packageName) }
+        val sessionId = installer.createSession(params)
+        try {
+            AppUpdateInstaller.clearSuperseded(context)
+            assertNotNull(installer.getSessionInfo(sessionId))
+        } finally {
+            installer.abandonSession(sessionId)
+        }
+    }
+
     @Suppress("DEPRECATION")
     @Test fun installerCallbackExplicitlyGrantsTheSupportedCreatorLaunchMode() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext

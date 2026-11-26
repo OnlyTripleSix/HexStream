@@ -135,6 +135,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            AppUpdateInstaller.clearSuperseded(applicationContext)
+        }
         com.github.andreyasadchy.xtra.util.WhisperCenter.initialize(application)
         prefs = prefs()
         migrateSettings()

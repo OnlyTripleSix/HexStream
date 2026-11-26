@@ -8,6 +8,8 @@ The HTTP entries no longer receive an invalid website-style `/ping` probe or a f
 
 The beta.18 online upgrade from the local beta.17 candidate completed through HexStream's own download, permission request and Android confirmation. Installed bytes matched the public APK, app UID and original install time were preserved, and a second check displayed No updates found. No personal data was cleared. Beta.19 also supersedes older app-owned confirmations when starting a new approved installation; other installers' sessions remain outside its scope.
 
+Startup cleanup also compares each own-target session's creation time with the installed app's update time on supported Android versions. Unit boundaries preserve newer/equal/unknown timestamps and other targets, and an isolated device fixture verifies that a fresh uncommitted QA session survives cleanup. This retires older blocked handoffs without deleting app data or a newer pending update.
+
 ## Update installer: 1.0.0-beta.18
 
 The corrected installer passed the **238 JVM tests**, **nine Python tests** and **41 account-free physical-device tests** in the local beta.17 candidate. The two added device checks exercise the framework's creator launch option, private callback activity, mutable installer response and distinct callback identities for separate sessions. The Android 15 phone exposed the original blocked handoff during a real download; the installer now explicitly supplies the launch option required by [Android's activity security rules](https://developer.android.com/guide/components/activities/secure-bal). Android 16 and later use the narrower visible-app mode. The complete signed-in follow fixture remains excluded.

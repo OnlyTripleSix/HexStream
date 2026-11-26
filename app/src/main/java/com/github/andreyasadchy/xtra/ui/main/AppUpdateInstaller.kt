@@ -76,4 +76,19 @@ internal object AppUpdateInstaller {
             Toast.makeText(context, R.string.update_install_failed, Toast.LENGTH_LONG).show()
         }
     }
+
+    @Synchronized
+    @Suppress("DEPRECATION")
+    fun clearSuperseded(context: Context) {
+        if (Build.VERSION.SDK_INT < 30) return
+        try {
+            val installedUpdate = context.packageManager.getPackageInfo(context.packageName, 0).lastUpdateTime
+            val installer = context.packageManager.packageInstaller
+            installer.mySessions.filter {
+                UpdateInstallSessions.superseded(it.appPackageName, context.packageName, it.createdMillis, installedUpdate)
+            }.forEach { runCatching { installer.abandonSession(it.sessionId) } }
+        } catch (_: Exception) {
+            // Best-effort metadata cleanup; installed files and app data are never touched.
+        }
+    }
 }
