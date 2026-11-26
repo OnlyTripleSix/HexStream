@@ -555,4 +555,6 @@
     <string name="stopping_video_swap">Video-Swap wird gestoppt</string>
     <string name="starting_proxy">Proxy wird gestartet</string>
     <string name="stopping_proxy">Proxy wird gestoppt</string>
+    <string name="update_install_permission">Erlaube HexStream, Updates zu installieren. Kehre danach zurück und suche erneut nach Updates.</string>
+    <string name="update_install_failed">Die Installation des Updates wurde nicht abgeschlossen. Versuche es erneut oder lade die APK-Datei von den HexStream-Veröffentlichungen auf GitHub herunter.</string>
 </resources>
