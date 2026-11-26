@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0-beta.15 (local test candidate)
+## 1.0.0-beta.16
 
 - Make **Automatic (recommended)** the default live ExoPlayer mode. Filter marked video-ad segments before output, reconnect within a bounded budget, and show a short waiting message while ad-free content is unavailable. Keep the original player under **Standard (advanced settings)**.
 - Share the mode across saved accounts. Append two public HTTP/V2 routes once without changing existing URL order, custom entries or disabled states; respect subsequently deleted entries. Keep the original six URL presets for fresh lists.
@@ -8,7 +8,7 @@
 - Retain quality selection, pinch zoom, chat and existing gestures. Automatic does not take the unfiltered direct fallback. Public-proxy availability and unmarked advertisements remain outside its guarantees.
 - Compare actual release versions when checking for updates, so a newer local build is not offered the older public APK again.
 
-## 1.0.0-beta.12–14 (local test candidates)
+## 1.0.0-beta.12–15 (local test candidates)
 
 - Validate native live proxy playlists before playback, retain that validation across quality changes, and add bounded ad-break rechecks.
 - Add on-device Streamlink 8.3.0 with the credited 2bc4 Twitch plug-in. These local candidates did not replace the published beta.11 release.

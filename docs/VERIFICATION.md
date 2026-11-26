@@ -1,6 +1,6 @@
 # Verification and known limits
 
-## Automatic playback: 1.0.0-beta.15 local candidate
+## Automatic playback: 1.0.0-beta.16
 
 All **238 JVM tests /36 suites** and **nine host Python routing/filter tests** pass. Coverage includes persistent token/master/media-playlist routing, low-latency reload URLs, excluding video bytes and lookalike hosts, route cleanup/session isolation, empty/error candidate fallback, withholding marked ad segments, status transitions, global preset additions, bounded reconnects, paused recovery and update-version comparisons. Android lint reports **zero errors and 30 reviewed warnings** covering dependency availability and resource/layout/preference suggestions. No check was disabled.
 
@@ -8,7 +8,7 @@ All **39 account-free phone tests** pass on a Galaxy S21 Ultra in the isolated Q
 
 Short anonymous checks received a live master and three media-playlist responses through each bundled HTTP/V2 endpoint; those six media responses contained no recognized ad marker. The actual Streamlink adapter also returned a 720p60 fragmented-MP4 initialization and media payload on the host. Phone playback rendered live video/chat at 720p and 1080p, a manual quality change succeeded, and a fresh launch entered Automatic without selecting it manually. Startup in the short phone samples was about 9–11 seconds; end-to-end delay against a PC was not measured. The phone's manual update check reported **No updates found** against the older public beta.11 feed.
 
-These checks do **not** establish that a complete live ad break was encountered and suppressed, sustained ad-free availability, long battery endurance, every device/font configuration or native MediaPlayer ad filtering. Ads are recognized from supplied markers, and an ad-only period can pause output. No real Twitch message, follow, reward, clip or moderation write was submitted. The production app's private filters and credentials were not used by QA. Final package/signing/source/privacy checks are recorded alongside the local candidate; this section does not announce a public release.
+These checks do **not** establish that a complete live ad break was encountered and suppressed, sustained ad-free availability, long battery endurance, every device/font configuration or native MediaPlayer ad filtering. Ads are recognized from supplied markers, and an ad-only period can pause output. No real Twitch message, follow, reward, clip or moderation write was submitted. The production app's private filters and credentials were not used by QA. The optimized package retains the original signing certificate and empty starter rules. Matching source and checksum files accompany its release. The initial beta.15 phone candidate used the same playback code; beta.16 advances the version so its normal in-app update path can be exercised.
 
 ## Playback recovery and pinch zoom: 1.0.0-beta.11
 
