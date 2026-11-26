@@ -129,6 +129,9 @@ class ExoPlayerService : BasePlaybackService() {
     var streamlinkEnabled = false
         private set
     private var streamlinkRequest = 0
+    private val automaticRecovery = AutomaticPlayback.Recovery()
+    private var automaticRecoveryJob: Job? = null
+    private var automaticPlayingSince: Long? = null
     private var customProxyMediaSourceFactory: HlsMediaSource.Factory? = null
     private var customProxyList: List<CustomProxy>? = null
     private val proxyAdRecovery = PlaybackProxyPolicy.AdRecovery()
@@ -434,7 +437,7 @@ class ExoPlayerService : BasePlaybackService() {
                         STREAM -> {
                             if (streamlinkEnabled) {
                                 android.util.Log.w(StreamlinkDataSource.TAG, "player_error code=${error.errorCode}")
-                                setPlaybackNotice(R.string.hex_streamlink_unavailable)
+                                recoverAutomaticPlayback()
                                 return
                             }
                             if (useCustomProxy) {
@@ -612,7 +615,9 @@ class ExoPlayerService : BasePlaybackService() {
                     updatePlaybackState()
                     if (isPlaying) {
                         if (streamlinkEnabled) {
+                            if (automaticPlayingSince == null) automaticPlayingSince = android.os.SystemClock.elapsedRealtime()
                             android.util.Log.i(StreamlinkDataSource.TAG, "playing height=${player?.videoFormat?.height}")
+                            setPlaybackNotice(null)
                         }
                         if (!streamlinkEnabled && type == STREAM && useCustomProxy) {
                             proxyPlaybackStartedAt = android.os.SystemClock.elapsedRealtime()
@@ -784,6 +789,9 @@ class ExoPlayerService : BasePlaybackService() {
     private fun start(restorePauseState: Boolean) {
         streamlinkEnabled = false
         streamlinkRequest++
+        automaticRecoveryJob?.cancel()
+        automaticRecovery.reset()
+        automaticPlayingSince = null
         customProxyRecoveryJob?.cancel()
         customProxyRecoveryJob = null
         proxyAdRecovery.reset()
@@ -792,6 +800,7 @@ class ExoPlayerService : BasePlaybackService() {
         setPlaybackNotice(null)
         lifecycleScope.launch {
             restorePlaybackState()
+            streamlinkEnabled = type == STREAM && AutomaticPlayback.enabled(prefs().getString(AutomaticPlayback.KEY, null))
             when (type) {
                 STREAM -> {
                     started = true
@@ -966,9 +975,15 @@ class ExoPlayerService : BasePlaybackService() {
         .takeIf { it.isHierarchical && (it.scheme == "https" || it.scheme == "http") && !it.host.isNullOrBlank() }
 
     fun setStreamlinkPlayback(enabled: Boolean) {
-        if (type != STREAM || streamlinkEnabled == enabled) return
+        if (type != STREAM) return
+        prefs().edit().putString(AutomaticPlayback.KEY,
+            if (enabled) AutomaticPlayback.AUTOMATIC else AutomaticPlayback.STANDARD).apply()
+        if (streamlinkEnabled == enabled) return
         streamlinkEnabled = enabled
         streamlinkRequest++
+        automaticRecoveryJob?.cancel()
+        automaticRecovery.reset()
+        automaticPlayingSince = null
         customProxyRecoveryJob?.cancel()
         customProxyRecoveryJob = null
         waitingForProxyRecheck = false
@@ -983,32 +998,45 @@ class ExoPlayerService : BasePlaybackService() {
     private suspend fun loadStreamlink(channel: String, restorePauseState: Boolean) {
         val active = player ?: return
         val request = ++streamlinkRequest
-        val proxyUrls = xtraModule.playerRepository.getCustomProxies()
-            .filter { it.enabled }
-            .sortedBy { it.position }
-            .mapNotNull { preset ->
-                val value = preset.url?.trim()?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
-                val uri = (if ("://" in value) value else "https://$value").toUri()
-                if (uri.host.isNullOrBlank() || uri.scheme !in listOf("https", "http", "httpproxy")) {
-                    return@mapNotNull null
-                }
-                uri.toString().replace("$" + "channel", "[channel]")
-            }
+        val proxyUrls = StreamlinkProxyRoutes.urls(
+            xtraModule.playerRepository.getCustomProxies(),
+            xtraModule.playerRepository.getStreamProxies(),
+        )
         if (!streamlinkEnabled || request != streamlinkRequest || channelLogin != channel || player !== active) return
         customProxyMediaSourceFactory = null
         playingAds = false
-        val allowDirect = prefs().getBoolean("hex_allow_direct_fallback", false)
+        val allowDirect = AutomaticPlayback.allowDirect(streamlinkEnabled,
+            prefs().getBoolean("hex_allow_direct_fallback", false))
         if (proxyUrls.isEmpty() && !allowDirect) {
             setPlaybackNotice(R.string.hex_streamlink_no_proxies)
             return
         }
-        setPlaybackNotice(null)
-        val selectedQuality = quality?.name?.takeUnless {
+        setPlaybackNotice(R.string.hex_automatic_connecting)
+        val selectedQuality = (quality?.name ?: prefs().getString(C.PLAYER_QUALITY, null))?.takeUnless {
             it == VideoQuality.AUDIO_ONLY_QUALITY || it == VideoQuality.CHAT_ONLY_QUALITY
         }
         val item = MediaItem.fromUri(Uri.Builder().scheme("hexstream-streamlink").authority(channel).build())
         val factory = androidx.media3.datasource.DataSource.Factory {
-            StreamlinkDataSource(applicationContext, channel, selectedQuality, proxyUrls, allowDirect)
+            StreamlinkDataSource(applicationContext, channel, selectedQuality, proxyUrls, allowDirect, onState = { state ->
+                lifecycleScope.launch {
+                    if (streamlinkEnabled && request == streamlinkRequest && channelLogin == channel && player === active) {
+                        setPlaybackNotice(if (state == "waiting") R.string.hex_automatic_waiting else null)
+                    }
+                }
+            }, onQualities = { names, selected ->
+                lifecycleScope.launch {
+                    if (streamlinkEnabled && request == streamlinkRequest && channelLogin == channel && player === active) {
+                        val oldMode = quality?.name
+                        qualities = names.map { VideoQuality(it) }.toMutableList().apply {
+                            add(VideoQuality(VideoQuality.AUDIO_ONLY_QUALITY))
+                            add(VideoQuality(VideoQuality.CHAT_ONLY_QUALITY))
+                        }
+                        quality = qualities?.find { it.name == oldMode && oldMode in listOf(VideoQuality.AUDIO_ONLY_QUALITY, VideoQuality.CHAT_ONLY_QUALITY) }
+                            ?: qualities?.find { it.name == selected }
+                        serviceListener?.changePlayerMode()
+                    }
+                }
+            })
         }
         active.setMediaSource(ProgressiveMediaSource.Factory(factory)
             .setLoadErrorHandlingPolicy(object : DefaultLoadErrorHandlingPolicy(0) {
@@ -1025,6 +1053,30 @@ class ExoPlayerService : BasePlaybackService() {
         active.prepare()
         active.playWhenReady = !restorePauseState || !paused
         android.util.Log.i(StreamlinkDataSource.TAG, "requested on-device playback")
+    }
+
+    private fun recoverAutomaticPlayback() {
+        if (automaticRecoveryJob?.isActive == true) return
+        if (automaticPlayingSince?.let { android.os.SystemClock.elapsedRealtime() - it >= 60_000 } == true) {
+            automaticRecovery.reset()
+        }
+        automaticPlayingSince = null
+        val delayMs = automaticRecovery.nextDelayMs(player?.playWhenReady == true)
+        if (delayMs == null) {
+            setPlaybackNotice(R.string.hex_streamlink_unavailable)
+            return
+        }
+        val request = streamlinkRequest
+        val channel = channelLogin ?: return
+        setPlaybackNotice(R.string.hex_automatic_reconnecting)
+        val job = lifecycleScope.launch(start = kotlinx.coroutines.CoroutineStart.LAZY) {
+            delay(delayMs)
+            if (streamlinkEnabled && request == streamlinkRequest && channelLogin == channel && type == STREAM) {
+                loadStreamlink(channel, restorePauseState = true)
+            }
+        }
+        automaticRecoveryJob = job
+        job.start()
     }
 
     private suspend fun loadStream(restorePauseState: Boolean = false, restart: Boolean = false) {
@@ -1669,6 +1721,13 @@ class ExoPlayerService : BasePlaybackService() {
         if (streamlinkEnabled && type == STREAM) {
             val name = selectedQuality?.name
             val previousMode = previousQuality?.name
+            if (saveSelection && name != null && name !in listOf(VideoQuality.AUDIO_ONLY_QUALITY, VideoQuality.CHAT_ONLY_QUALITY)) {
+                val connectivity = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+                val cellular = connectivity.getNetworkCapabilities(connectivity.activeNetwork)
+                    ?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true
+                val key = if (cellular) C.PLAYER_DEFAULT_CELLULAR_QUALITY else C.PLAYER_DEFAULT_QUALITY
+                if (prefs().getString(key, "saved") == "saved") prefs().edit { putString(C.PLAYER_QUALITY, name) }
+            }
             when {
                 name == VideoQuality.CHAT_ONLY_QUALITY -> player?.stop()
                 name == VideoQuality.AUDIO_ONLY_QUALITY -> {
@@ -2265,6 +2324,7 @@ class ExoPlayerService : BasePlaybackService() {
     }
 
     fun pause() {
+        automaticRecoveryJob?.cancel()
         if (secondaryPlayer != null) {
             secondaryPlayer?.pause()
         }
@@ -2272,6 +2332,8 @@ class ExoPlayerService : BasePlaybackService() {
     }
 
     fun stop() {
+        automaticRecoveryJob?.cancel()
+        streamlinkRequest++
         if (secondaryPlayer != null) {
             secondaryPlayer?.stop()
         }
@@ -2372,6 +2434,11 @@ class ExoPlayerService : BasePlaybackService() {
 
     fun restartPlayer(resetProxies: Boolean = false) {
         if (quality?.name != VideoQuality.CHAT_ONLY_QUALITY) {
+            automaticRecoveryJob?.cancel()
+            automaticRecovery.reset()
+            if (type == STREAM) {
+                streamlinkEnabled = AutomaticPlayback.enabled(prefs().getString(AutomaticPlayback.KEY, null))
+            }
             val resetStream = resetProxies && type == STREAM
             if (resetStream) customProxyRecoveryJob?.cancel()
             val job = lifecycleScope.launch(start = kotlinx.coroutines.CoroutineStart.LAZY) {
@@ -3023,6 +3090,8 @@ class ExoPlayerService : BasePlaybackService() {
     }
 
     override fun onDestroy() {
+        streamlinkRequest++
+        automaticRecoveryJob?.cancel()
         super.onDestroy()
         player?.release()
         secondaryPlayer?.release()

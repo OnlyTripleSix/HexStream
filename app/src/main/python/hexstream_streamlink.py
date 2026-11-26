@@ -33,10 +33,12 @@ logger.propagate = False
 
 
 class StreamReader:
-    def __init__(self, session, stream, quality):
+    def __init__(self, session, stream, quality, route=None, qualities=()):
         self._session = session
         self._stream = stream
         self.quality = quality
+        self._route = route
+        self.qualities = list(qualities)
 
     def read(self, size):
         return self._stream.read(size)
@@ -45,6 +47,8 @@ class StreamReader:
         try:
             self._stream.close()
         finally:
+            if self._route is not None:
+                self._route.close()
             self._session.http.close()
 
 
@@ -71,7 +75,7 @@ def pick_stream(streams, requested_quality):
     return name, available[name]
 
 
-def open_stream(channel, requested_quality, proxies, allow_direct):
+def open_stream(channel, requested_quality, proxies, allow_direct, status=None):
     if not re.fullmatch(r"[A-Za-z0-9_]{1,25}", channel):
         raise ValueError("Invalid channel login")
     proxies = [str(proxy) for proxy in proxies]
@@ -82,6 +86,7 @@ def open_stream(channel, requested_quality, proxies, allow_direct):
         "hls-live-edge": 2,
         "stream-segment-timeout": 8,
         "stream-timeout": 110,
+        "hexstream-status": status,
     })
     try:
         plugin = Twitch(session, f"https://www.twitch.tv/{channel}", options={
@@ -91,8 +96,15 @@ def open_stream(channel, requested_quality, proxies, allow_direct):
             "proxy-playlist": proxies,
             "proxy-playlist-fallback": bool(allow_direct),
         })
-        name, stream = pick_stream(plugin.streams(), requested_quality)
-        return StreamReader(session, stream.open(), name)
+        streams = plugin.streams()
+        name, stream = pick_stream(streams, requested_quality)
+        qualities = [key for key, item in streams.items()
+                     if isinstance(item, TwitchHLSStream) and key not in ("best", "worst", "audio_only")]
+        qualities.sort(key=Twitch.stream_weight, reverse=True)
+        return StreamReader(session, stream.open(), name, getattr(plugin, "_hexstream_proxy_route", None), qualities)
     except BaseException:
+        route = getattr(locals().get("plugin"), "_hexstream_proxy_route", None)
+        if route is not None:
+            route.close()
         session.http.close()
         raise

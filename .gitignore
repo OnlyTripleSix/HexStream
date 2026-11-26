@@ -42,3 +42,5 @@ backups/
 fastlane/report.xml
 fastlane/screenshots/
 fastlane/test_output/
+__pycache__/
+*.pyc

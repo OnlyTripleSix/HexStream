@@ -1082,7 +1082,9 @@ class MainViewModel(
                         obj.getValue("updated_at").jsonPrimitive.contentOrNull?.let {
                             Instant.parseOrNull(it)?.toEpochMilliseconds()?.takeIf { ms -> ms > 0 }
                         }?.let {
-                            if (it > lastChecked) {
+                            if (com.github.andreyasadchy.xtra.util.HexStreamUpdates.shouldOffer(
+                                    response["tag_name"]?.jsonPrimitive?.contentOrNull,
+                                    com.github.andreyasadchy.xtra.BuildConfig.VERSION_NAME, it, lastChecked)) {
                                 updateSize = obj["size"]?.jsonPrimitive?.longOrNull
                                 obj.getValue("browser_download_url").jsonPrimitive.contentOrNull
                             } else null

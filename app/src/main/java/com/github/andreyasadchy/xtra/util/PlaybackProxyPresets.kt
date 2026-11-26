@@ -3,10 +3,20 @@ package com.github.andreyasadchy.xtra.util
 import com.github.andreyasadchy.xtra.model.ui.CustomProxy
 
 object PlaybackProxyPresets {
-    val hosts = listOf("eu2.luminous.dev", "eu.luminous.dev", "lb-as.cdn-perfprod.com")
+    val hosts = listOf("eu2.luminous.dev", "eu.luminous.dev", "lb-na.cdn-perfprod.com",
+        "lb-eu.cdn-perfprod.com", "lb-eu2.cdn-perfprod.com", "lb-as.cdn-perfprod.com")
     val urls = hosts.map { "https://$it/live/\$channel?allow_source=true&allow_audio_only=true&fast_bread=true" }
+    val httpUrls = listOf("httpproxy://firefox.api.cdn-perfprod.com:2023",
+        "httpproxy://chromium.api.cdn-perfprod.com:2023")
 
     fun initialItems() = urls.mapIndexed { index, url -> CustomProxy(url, false, index, true) }
+
+    /** Called by the global store once. Never revive an emptied/disabled list or replace a custom tunnel. */
+    fun automaticImports(existing: List<CustomProxy>): List<CustomProxy> {
+        if (existing.none { it.enabled } || existing.any { it.url?.trim()?.startsWith("httpproxy://", true) == true }) return emptyList()
+        val next = (existing.maxOfOrNull { it.position } ?: -1) + 1
+        return httpUrls.mapIndexed { index, url -> CustomProxy(url, false, next + index, true) }
+    }
 
     fun imports(existing: List<CustomProxy>, legacy: List<CustomProxy>): List<CustomProxy> {
         val known = existing.mapNotNull { it.url }.toMutableSet()

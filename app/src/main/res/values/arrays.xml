@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string-array name="hexPlaybackModeEntries">
+        <item>@string/hex_source_automatic</item>
+        <item>@string/hex_source_hexstream</item>
+    </string-array>
+    <string-array name="hexPlaybackModeValues">
+        <item>automatic</item>
+        <item>standard</item>
+    </string-array>
     <string-array name="playerEntries">
         <item>ExoPlayer</item>
         <item>MediaPlayer</item>

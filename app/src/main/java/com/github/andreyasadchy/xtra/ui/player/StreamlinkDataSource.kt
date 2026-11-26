@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.annotation.OptIn
+import androidx.annotation.Keep
 import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.BaseDataSource
@@ -22,6 +23,8 @@ internal class StreamlinkDataSource(
     private val preferredQuality: String?,
     private val proxyUrls: List<String>,
     private val allowDirect: Boolean,
+    private val onState: (String) -> Unit = {},
+    private val onQualities: (List<String>, String) -> Unit = { _, _ -> },
 ) : BaseDataSource(true) {
     private var stream: PyObject? = null
     private var uri: Uri? = null
@@ -35,7 +38,7 @@ internal class StreamlinkDataSource(
                 if (!Python.isStarted()) Python.start(AndroidPlatform(context.applicationContext))
             }
             Python.getInstance().getModule("hexstream_streamlink").callAttr(
-                "open_stream", channel, preferredQuality, proxyUrls.toTypedArray(), allowDirect,
+                "open_stream", channel, preferredQuality, proxyUrls.toTypedArray(), allowDirect, StreamlinkStatus(onState),
             )
         } catch (error: PyException) {
             throw streamlinkError("open", error)
@@ -45,6 +48,8 @@ internal class StreamlinkDataSource(
             throw streamlinkError("runtime", error)
         }
         stream = reader
+        onQualities(reader.get("qualities")?.asList()?.map { it.toString() }.orEmpty(),
+            reader.get("quality")?.toString().orEmpty())
         uri = dataSpec.uri
         receivedData = false
         transferStarted(dataSpec)
@@ -98,5 +103,13 @@ internal class StreamlinkDataSource(
     companion object {
         const val TAG = "HexStreamStreamlink"
         private val pythonLock = Any()
+    }
+}
+
+/** Called by Python's per-session segment writer; only fixed states cross the bridge. */
+@Keep
+internal class StreamlinkStatus(private val notify: (String) -> Unit) {
+    fun onState(state: String) {
+        if (state == "waiting" || state == "ready") notify(state)
     }
 }

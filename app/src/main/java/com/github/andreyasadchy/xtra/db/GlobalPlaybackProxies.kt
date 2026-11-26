@@ -17,15 +17,18 @@ class GlobalPlaybackProxies(
     private fun prepare() = synchronized(lock) {
         val seed = !state.getBoolean("seeded_v1", false)
         val import = !state.getBoolean("import_$accountKey", false)
-        if (!seed && !import) return@synchronized
+        val automatic = !state.getBoolean("automatic_http_v1", false)
+        if (!seed && !import && !automatic) return@synchronized
         database.runInTransaction {
             if (seed && dao.getAll().isEmpty()) dao.insertList(PlaybackProxyPresets.initialItems())
             if (import) {
                 // Never change/delete the old account's rows; retain custom URLs and enabled state.
                 dao.insertList(PlaybackProxyPresets.imports(dao.getAll(), legacy.getAll()))
             }
+            if (automatic) dao.insertList(PlaybackProxyPresets.automaticImports(dao.getAll()))
         }
-        check(state.edit().putBoolean("seeded_v1", true).putBoolean("import_$accountKey", true).commit())
+        check(state.edit().putBoolean("seeded_v1", true).putBoolean("import_$accountKey", true)
+            .putBoolean("automatic_http_v1", true).commit())
     }
 
     override fun getAll(): List<CustomProxy> { prepare(); return dao.getAll() }

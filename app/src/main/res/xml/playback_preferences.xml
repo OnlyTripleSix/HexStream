@@ -1,6 +1,16 @@
 <androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <ListPreference
+        android:key="hex_playback_mode"
+        android:defaultValue="automatic"
+        android:title="@string/hex_playback_source"
+        android:entries="@array/hexPlaybackModeEntries"
+        android:entryValues="@array/hexPlaybackModeValues"
+        android:summary="@string/hex_help_automatic_playback"
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false" />
+
     <EditTextPreference
         android:defaultValue="3000"
         android:key="proxy_timeout"

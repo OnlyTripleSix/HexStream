@@ -30,6 +30,7 @@ from typing import TYPE_CHECKING, ClassVar
 from urllib.parse import quote, urlparse
 
 from requests.exceptions import HTTPError
+from hexstream_proxy_route import PlaybackProxyRoute
 
 from streamlink.exceptions import NoStreamsError, PluginError
 from streamlink.logger import getLogger
@@ -260,6 +261,12 @@ class TwitchHLSStreamWriter(HLSStreamWriter):
     stream: TwitchHLSStream
 
     def should_filter_segment(self, segment: TwitchHLSSegment) -> bool:  # type: ignore[override, ty:invalid-method-override]
+        state = "waiting" if segment.ad else "ready"
+        if getattr(self, "_hexstream_ad_state", None) != state:
+            self._hexstream_ad_state = state
+            status = self.session.options.get("hexstream-status")
+            if status is not None:
+                status.onState(state)
         return segment.ad
 
 
@@ -372,16 +379,17 @@ class PlaylistProxyService:
             parsed_url = urlparse(proxy)
             if parsed_url.scheme == "httpproxy":
                 log.info(f"Using HTTP proxy '{parsed_url.scheme}://{parsed_url.netloc}'")
-                self.plugin.session.http.proxies = {
-                    "http": f"http://{parsed_url.netloc}",
-                    "https": f"http://{parsed_url.netloc}",
-                }
+                route = PlaybackProxyRoute(self.plugin.session.http, parsed_url.netloc)
                 try:
-                    return self.plugin._get_hls_streams_live(channel)
-                except OSError as err:
+                    streams = self.plugin._get_hls_streams_live(channel)
+                    if streams:
+                        self.plugin._hexstream_proxy_route = route
+                        return streams
+                except (OSError, PluginError) as err:
                     log.error(err)
                 finally:
-                    self.plugin.session.http.proxies = {}
+                    if getattr(self.plugin, "_hexstream_proxy_route", None) is not route:
+                        route.close()
             else:
                 url = re.sub(r"\[channel\]", channel, proxy)
                 parsed_url = urlparse(url)
@@ -393,8 +401,10 @@ class PlaylistProxyService:
 
                 log.info(f"Using playlist proxy '{parsed_url.scheme}://{parsed_url.netloc}'")
                 try:
-                    return TwitchHLSStream.parse_variant_playlist(self.plugin.session, url, **kwargs)
-                except OSError as err:
+                    streams = TwitchHLSStream.parse_variant_playlist(self.plugin.session, url, **kwargs)
+                    if streams:
+                        return streams
+                except (OSError, PluginError) as err:
                     log.error(err)
 
         if self.plugin.get_option("proxy-playlist-fallback"):

@@ -1,5 +1,15 @@
 # Verification and known limits
 
+## Automatic playback: 1.0.0-beta.15 local candidate
+
+All **238 JVM tests /36 suites** and **nine host Python routing/filter tests** pass. Coverage includes persistent token/master/media-playlist routing, low-latency reload URLs, excluding video bytes and lookalike hosts, route cleanup/session isolation, empty/error candidate fallback, withholding marked ad segments, status transitions, global preset additions, bounded reconnects, paused recovery and update-version comparisons. Android lint reports **zero errors and 30 reviewed warnings** covering dependency availability and resource/layout/preference suggestions. No check was disabled.
+
+All **39 account-free phone tests** pass on a Galaxy S21 Ultra in the isolated QA package. They include the new Java/Python bridge and packaged classifier, five real Media3 playlist checks, existing zoom/overlay/account/filter/moderation checks and **233 explained settings rows**. An initial fixture still expected 232 rows; its count was updated for the added mode while retaining every help-text and preference-preservation assertion. The signed-in follow fixture remains excluded. A live phone check caught mode selection occurring before saved playback state was restored; startup now resolves the restored stream type before choosing Automatic.
+
+Short anonymous checks received a live master and three media-playlist responses through each bundled HTTP/V2 endpoint; those six media responses contained no recognized ad marker. The actual Streamlink adapter also returned a 720p60 fragmented-MP4 initialization and media payload on the host. Phone playback rendered live video/chat at 720p and 1080p, a manual quality change succeeded, and a fresh launch entered Automatic without selecting it manually. Startup in the short phone samples was about 9–11 seconds; end-to-end delay against a PC was not measured. The phone's manual update check reported **No updates found** against the older public beta.11 feed.
+
+These checks do **not** establish that a complete live ad break was encountered and suppressed, sustained ad-free availability, long battery endurance, every device/font configuration or native MediaPlayer ad filtering. Ads are recognized from supplied markers, and an ad-only period can pause output. No real Twitch message, follow, reward, clip or moderation write was submitted. The production app's private filters and credentials were not used by QA. Final package/signing/source/privacy checks are recorded alongside the local candidate; this section does not announce a public release.
+
 ## Playback recovery and pinch zoom: 1.0.0-beta.11
 
 All **225 JVM tests /34 suites** passed with no failures/errors/skips. New regressions cover retained Twitch ad classes/IDs/attributes, range boundaries and end updates, quoted commas, missing/malformed/unrelated metadata, legacy titles, bounded proxy exhaustion with explicit direct opt-in, saved-source invalidation before a permitted direct transition, and zoom bounds/anchoring/pan/reset/invalid input. Existing pagination, rules, accounts, low-delay, rewards, channel-tool and download suites remain included.

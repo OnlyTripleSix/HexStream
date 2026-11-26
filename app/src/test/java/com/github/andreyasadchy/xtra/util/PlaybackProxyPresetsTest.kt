@@ -7,7 +7,8 @@ import org.junit.Test
 class PlaybackProxyPresetsTest {
     @Test fun defaultsHaveRequiredPreferenceOrderAndExactUrls() {
         val items = PlaybackProxyPresets.initialItems()
-        assertEquals(listOf("eu2.luminous.dev", "eu.luminous.dev", "lb-as.cdn-perfprod.com"), PlaybackProxyPresets.hosts)
+        assertEquals(listOf("eu2.luminous.dev", "eu.luminous.dev", "lb-na.cdn-perfprod.com",
+            "lb-eu.cdn-perfprod.com", "lb-eu2.cdn-perfprod.com", "lb-as.cdn-perfprod.com"), PlaybackProxyPresets.hosts)
         items.forEachIndexed { index, item ->
             assertEquals("https://${PlaybackProxyPresets.hosts[index]}/live/\$channel?allow_source=true&allow_audio_only=true&fast_bread=true", item.url)
             assertEquals(index, item.position)
@@ -30,5 +31,18 @@ class PlaybackProxyPresetsTest {
         assertTrue(PlaybackProxyPresets.imports(listOf(existing), listOf(CustomProxy(existing.url, true, 0, true))).isEmpty())
         assertFalse(existing.enabled)
         assertEquals(20, existing.position)
+    }
+    @Test fun automaticImportsAppendWithoutChangingExistingChoices() {
+        val existing = CustomProxy("https://fixture.invalid", true, 20, true)
+        val imported = PlaybackProxyPresets.automaticImports(listOf(existing))
+        assertEquals(PlaybackProxyPresets.httpUrls, imported.map { it.url })
+        assertEquals(listOf(21, 22), imported.map { it.position })
+        assertEquals(20, existing.position)
+        assertTrue(existing.addQueryParams)
+    }
+    @Test fun automaticImportsRespectEmptyDisabledAndCustomTunnelLists() {
+        assertTrue(PlaybackProxyPresets.automaticImports(emptyList()).isEmpty())
+        assertTrue(PlaybackProxyPresets.automaticImports(listOf(CustomProxy("https://fixture.invalid", false, 0, false))).isEmpty())
+        assertTrue(PlaybackProxyPresets.automaticImports(listOf(CustomProxy("httpproxy://fixture.invalid:2023", false, 0, false))).isEmpty())
     }
 }

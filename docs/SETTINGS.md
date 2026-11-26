@@ -4,6 +4,10 @@ Open **Settings** from the main menu. Each option has a short description and a 
 
 The main screen groups app/browsing controls, watching/listening, proxies, downloads/updates/data and advanced troubleshooting. Nothing is secretly reset when you open it. Menu language, chat translation and stream-language filters are separate choices.
 
+## Automatic playback
+
+For everyday live watching with ExoPlayer, leave **Settings → Playback settings → Playback mode → Automatic (recommended)** selected. It handles proxy selection, marked-ad filtering and bounded reconnections. A short waiting message appears if only ad content is available. This global choice stays selected when switching accounts. The old individual proxy/video-swap controls are used by **Standard (advanced settings)**. HTTP/V2 routes remain editable in the global playback URL list; account-specific HTTP entries are also supported. [Details and limits](PLAYBACK.md).
+
 ## Similar-looking controls that do different jobs
 
 | Controls | Difference and example |

@@ -379,10 +379,10 @@ class ExoPlayerFragment : PlayerFragment() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.hex_playback_source)
             .setSingleChoiceItems(
-                arrayOf(getString(R.string.hex_source_hexstream), getString(R.string.hex_source_streamlink)),
-                if (service.streamlinkEnabled) 1 else 0,
+                arrayOf(getString(R.string.hex_source_automatic), getString(R.string.hex_source_hexstream)),
+                if (service.streamlinkEnabled) 0 else 1,
             ) { dialog, which ->
-                service.setStreamlinkPlayback(which == 1)
+                service.setStreamlinkPlayback(which == 0)
                 dialog.dismiss()
             }
             .setNegativeButton(android.R.string.cancel, null)
@@ -435,6 +435,8 @@ class ExoPlayerFragment : PlayerFragment() {
     private fun showPlaybackNotice(resId: Int?) {
         binding.playbackNotice.isVisible = resId != null
         binding.playbackNoticeText.text = resId?.let { getString(it) }.orEmpty()
+        binding.retryPlayback.isVisible = resId !in listOf(R.string.hex_automatic_connecting,
+            R.string.hex_automatic_waiting, R.string.hex_automatic_reconnecting)
         binding.retryPlayback.setOnClickListener { restartPlayer() }
     }
 

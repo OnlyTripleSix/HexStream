@@ -1,20 +1,33 @@
 # Playback, proxies, accounts, points and zoom
 
+## Automatic: open a stream and watch
+
+**Automatic (recommended)** is the initial mode for live ExoPlayer playback. It uses on-device Streamlink, tries enabled HTTP/V2 routes before legacy playlist URLs, filters marked advertisement segments, and reconnects automatically after recoverable failures. There is no need to switch sources for each channel. The choice is global across saved accounts.
+
+During an ad-only break it displays **Waiting for an ad-free stream…** and resumes when content is available. It cannot supply missing live content, recognize every unmarked advertisement or guarantee public-proxy uptime. After three unsuccessful automatic reconnects it offers Retry; it never silently switches to unfiltered direct playback. Use the player menu's **Playback mode**, or **Settings → Playback settings → Playback mode**, to choose **Standard (advanced settings)** for the original native playback/proxy controls. Automatic requires ExoPlayer; the optional MediaPlayer keeps its original behavior.
+
+HTTP/V2 routes stay attached to anonymous playback-token requests, the master playlist and every media-playlist refresh. Video-segment bytes stay direct. The Python session is independent of the saved Twitch account and does not receive its token or cookies. Enabled account-specific HTTP entries remain usable alongside the global URL list. No list is merged with another account's credentials.
+
 ## Global playback presets
 
-The custom playback proxy list is stored once in a global database. It is seeded only when the global list is first created and empty. Existing account-specific custom URLs are imported once without deleting account data or overwriting the global list. Switching accounts does not reseed, reorder or clear it. Updated defaults apply on first seed. Existing lists keep their URLs, order and enabled flags, including previously deleted presets staying deleted.
+The custom playback proxy list is stored once in a global database. It is seeded only when the global list is first created and empty. Existing account-specific custom URLs are imported once without deleting account data or overwriting the global list. The one-time HTTP/V2 addition described below is separate from that initial seed. Switching accounts does not reseed, reorder or clear it. Updated defaults apply on first seed. Existing lists keep their URLs, order and enabled flags, including previously deleted presets staying deleted.
 
 | Initial order | Preset | URL |
 | --- | --- | --- |
 | 1 | EU2 Luminous | `https://eu2.luminous.dev/live/$channel?allow_source=true&allow_audio_only=true&fast_bread=true` |
 | 2 | EU Luminous | `https://eu.luminous.dev/live/$channel?allow_source=true&allow_audio_only=true&fast_bread=true` |
-| 3 | PerfProd Asia | `https://lb-as.cdn-perfprod.com/live/$channel?allow_source=true&allow_audio_only=true&fast_bread=true` |
+| 3 | PerfProd North America | `https://lb-na.cdn-perfprod.com/live/$channel?allow_source=true&allow_audio_only=true&fast_bread=true` |
+| 4 | PerfProd Europe | `https://lb-eu.cdn-perfprod.com/live/$channel?allow_source=true&allow_audio_only=true&fast_bread=true` |
+| 5 | PerfProd Europe 2 | `https://lb-eu2.cdn-perfprod.com/live/$channel?allow_source=true&allow_audio_only=true&fast_bread=true` |
+| 6 | PerfProd Asia | `https://lb-as.cdn-perfprod.com/live/$channel?allow_source=true&allow_audio_only=true&fast_bread=true` |
+
+Beta.15 appends `httpproxy://firefox.api.cdn-perfprod.com:2023` and `httpproxy://chromium.api.cdn-perfprod.com:2023` once to an enabled global list that has no configured HTTP tunnel. Existing rows are not reordered or enabled. An empty or entirely disabled list stays that way. Automatic prioritizes HTTP tunnels while preserving the relative order within each route type. Removing or disabling the added entries is respected across account switches and later launches. Existing edited lists are not replaced by the fresh-list table above. Public HTTP endpoint support comes from the [2bc4 plug-in](https://github.com/2bc4/streamlink-ttvlol/releases/tag/8.3.0-20260701); inclusion does not guarantee availability.
 
 `$channel` is replaced with the stream’s channel login. Edit, reorder, enable/disable or add custom entries through the existing playback proxy settings. Deleting a preset is respected; account switching does not restore it.
 
 ## Keep the proxy choice honest
 
-With **Playback URL proxies** enabled, HexStream tries your enabled endpoints in the saved order. ExoPlayer checks each parsed media playlist before Media3 can publish it to playback. A master playlist alone is insufficient. A marked, unusable or failed candidate advances to the next endpoint. The same check applies when a live playlist refreshes. Each pass follows the saved order once. If the pass ends after an ad rejection, ExoPlayer waits and checks the list again after 15, 25 and 30 seconds at most. Direct fallback and the final Retry playback notice apply after this bounded recovery. Transport-only failures do not schedule ad rechecks. A clean replacement uses the regular quality selection and low-delay settings.
+In Standard mode, with **Playback URL proxies** enabled, HexStream tries your enabled endpoints in the saved order. ExoPlayer checks each parsed media playlist before Media3 can publish it to playback. A master playlist alone is insufficient. A marked, unusable or failed candidate advances to the next endpoint. The same check applies when a live playlist refreshes. Each pass follows the saved order once. If the pass ends after an ad rejection, ExoPlayer waits and checks the list again after 15, 25 and 30 seconds at most. Direct fallback and the final Retry playback notice apply after this bounded recovery. Transport-only failures do not schedule ad rechecks. A clean replacement uses the regular quality selection and low-delay settings.
 
 When the list runs out, playback stops and displays **Retry playback**. Retry reloads your current enabled list from the beginning. Check **Settings → Playback proxy URLs** to enable or reorder entries. Custom URLs and disabled entries are preserved. Changing Twitch accounts changes none of these global choices.
 
@@ -34,11 +47,13 @@ Proxy settings and pagination have separate implementations and state. Independe
 
 ## Live delay
 
-Low-delay mode is enabled by default for live ExoPlayer playback. The target live offset is **1,000 ms**, with bounded playback-speed adjustment from **0.97× to 1.08×**. Live startup/rebuffer thresholds are **500 ms / 1,000 ms**; player-speed changes are accounted for. VOD and disabled low-delay paths keep their normal buffering behavior.
+In Standard mode, low-delay mode is enabled by default for native live ExoPlayer HLS playback. The target live offset is **1,000 ms**, with bounded playback-speed adjustment from **0.97× to 1.08×**. Live startup/rebuffer thresholds are **500 ms / 1,000 ms**; player-speed changes are accounted for. VOD and disabled low-delay paths keep their normal buffering behavior.
 
 This target measures the player’s position relative to the stream’s available live edge. It does not mean that the phone is guaranteed one second behind the broadcaster or another device. Twitch/proxy playlist generation, stream encoding, network conditions and buffering all contribute to end-to-end delay. Tap LIVE to return to the current edge if playback falls behind; turn off low-delay mode if your connection needs more buffering.
 
 The custom `LiveLoadControl` explicitly forwards the Media3 `LoadControl` contract, including Java default methods. A compatibility test checks delegation when the Media3 API changes.
+
+Automatic enables Streamlink low-latency reading with a two-segment edge. Its progressive output does not expose Media3's native HLS live-offset/catch-up controls. Tap LIVE to reconnect to the available edge. Startup time and end-to-end live delay are different measurements.
 
 ## Gestures
 
@@ -72,7 +87,7 @@ Xtra’s existing automatic bonus preference remains available. Reward availabil
 
 ## On-device Streamlink
 
-Open the live player's three-dot menu, choose **Playback source**, then choose **Streamlink (on device)**. Switch back to **HexStream** from the same menu. The choice lasts for the current player session. Chat stays connected while changing video sources.
+Automatic uses Streamlink internally. Open the live player's three-dot menu and choose **Playback mode** to switch to Standard and back. The choice is saved globally. Chat stays connected while changing video sources.
 
 Streamlink runs inside the app using bundled Python 3.11. It uses the enabled playback URL proxies in their saved order and accepts TTV LOL PRO-compatible HTTP proxy routes configured as `httpproxy://host:port`. Direct fallback follows the existing explicit opt-in. The app supplies channel and playback settings to Streamlink without sharing its signed-in Twitch session. ExoPlayer plays Streamlink's filtered progressive output. This mode uses a single H.264 video and audio rendition. Select a different quality to reopen the feed. The live-edge action reconnects to the current live feed.
 

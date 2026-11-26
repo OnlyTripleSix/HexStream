@@ -583,7 +583,7 @@
     <string translatable="false" name="hex_swipe_volume">Swipe for volume</string>
     <string name="hex_low_delay" translatable="false">Low-delay live playback</string>
     <string name="hex_about_title" translatable="false">HexStream %1$s</string>
-    <string name="hex_about_credits" translatable="false">An independent Twitch client by TripleSix, built on Xtra 2.60.7 with fixes through Xtra 2.60.10.\n\nXtra was created by AndreyAsadchy and developed further by crackededed and the Xtra contributors. Their player, chat and browsing work is the foundation of HexStream.\n\nThe filtering workflow and compatible blocking-list JSON format were inspired by Unwanted Twitch by kwaschny and its contributors. HexStream uses its own native Android filtering engine.\n\nFullscreen chat overlay adapts the approach in ThystTV by tzii (Simone Perini) and its contributors. Their overlay and view-reparenting work informed this feature.\n\nSource code is available under the GNU Affero General Public License v3. The repository includes the license, upstream attribution and third-party notices.\n\nNot affiliated with Twitch.</string>
+    <string name="hex_about_credits" translatable="false">An independent Twitch client by TripleSix, built on Xtra 2.60.7 with fixes through Xtra 2.60.10.\n\nXtra was created by AndreyAsadchy and developed further by crackededed and the Xtra contributors. Their player, chat and browsing work is the foundation of HexStream.\n\nThe filtering workflow and compatible blocking-list JSON format were inspired by Unwanted Twitch by kwaschny and its contributors. HexStream uses its own native Android filtering engine.\n\nFullscreen chat overlay adapts the approach in ThystTV by tzii (Simone Perini) and its contributors. Their overlay and view-reparenting work informed this feature.\n\nAutomatic playback uses Streamlink by its authors and contributors, with the Twitch proxy plug-in by 2bc4 and contributors, under the BSD 2-Clause license. Chaquopy runs Python on Android. Their original notices are included.\n\nSource code is available under the GNU Affero General Public License v3. The repository includes the license, upstream attribution and third-party notices.\n\nNot affiliated with Twitch.</string>
     <string name="hex_about_source" translatable="false">HexStream source</string>
     <string name="hex_about_xtra" translatable="false">Xtra upstream</string>
     <string name="hex_whispers_title" translatable="false">Whispers</string>
@@ -616,9 +616,14 @@
     <string translatable="false" name="hex_proxy_ad_retry">Ad detected from this proxy. Trying the next enabled endpoint…</string>
     <string translatable="false" name="hex_proxy_direct_warning">Playback proxies exhausted. Direct fallback is enabled; Twitch may show ads.</string>
     <string translatable="false" name="hex_retry_playback">Retry playback</string>
-    <string name="hex_playback_source" translatable="false">Playback source</string>
-    <string name="hex_source_hexstream" translatable="false">HexStream</string>
+    <string name="hex_playback_source" translatable="false">Playback mode</string>
+    <string name="hex_source_automatic" translatable="false">Automatic (recommended)</string>
+    <string name="hex_source_hexstream" translatable="false">Standard (advanced settings)</string>
+    <string name="hex_help_automatic_playback" translatable="false">Automatic filters marked video ads and reconnects for you. Example: leave it selected for everyday watching; if only ads are available, playback waits for stream content. The choice is shared across your accounts. Standard uses the separate proxy and player settings. Automatic requires ExoPlayer.</string>
+    <string name="hex_automatic_connecting" translatable="false">Finding a stream…</string>
+    <string name="hex_automatic_waiting" translatable="false">Waiting for an ad-free stream…</string>
+    <string name="hex_automatic_reconnecting" translatable="false">Reconnecting automatically…</string>
     <string name="hex_source_streamlink" translatable="false">Streamlink (on device)</string>
-    <string name="hex_streamlink_unavailable" translatable="false">Streamlink could not play this channel. Retry or switch playback source.</string>
-    <string name="hex_streamlink_no_proxies" translatable="false">Enable a playback proxy or allow direct fallback to use Streamlink.</string>
+    <string name="hex_streamlink_unavailable" translatable="false">Could not reconnect. Tap Retry to try again.</string>
+    <string name="hex_streamlink_no_proxies" translatable="false">No enabled playback proxy is available. Check the proxy list in Settings.</string>
 </resources>

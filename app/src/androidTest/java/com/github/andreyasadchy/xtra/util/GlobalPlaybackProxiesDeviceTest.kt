@@ -27,19 +27,22 @@ class GlobalPlaybackProxiesDeviceTest {
             val first = GlobalPlaybackProxies(context, "fixture_a", legacyA.customProxies(), global)
             val seeded = first.getAll()
             val presetCount = PlaybackProxyPresets.urls.size
+            val httpCount = PlaybackProxyPresets.httpUrls.size
             assertEquals(PlaybackProxyPresets.urls, seeded.take(presetCount).map { it.url })
-            assertEquals(presetCount + 1, seeded.size)
+            assertEquals(presetCount + httpCount + 1, seeded.size)
             seeded.first().enabled = false
             first.update(seeded.first())
             val second = GlobalPlaybackProxies(context, "fixture_b", legacyB.customProxies(), global)
             val shared = second.getAll()
-            assertEquals(presetCount + 1, shared.size)
+            assertEquals(presetCount + httpCount + 1, shared.size)
             assertFalse(shared.first().enabled)
             assertFalse(shared.single { it.url == customUrl }.enabled)
             assertFalse(shared.single { it.url == customUrl }.addQueryParams)
             first.delete(shared[1])
-            assertEquals(presetCount, second.getAll().size)
+            assertEquals(presetCount + httpCount, second.getAll().size)
             assertFalse(second.getAll().any { it.url == PlaybackProxyPresets.urls[1] })
+            shared.filter { it.url in PlaybackProxyPresets.httpUrls }.forEach(first::delete)
+            assertFalse(second.getAll().any { it.url in PlaybackProxyPresets.httpUrls })
             assertEquals(1, legacyA.customProxies().getAll().size)
             assertEquals(1, legacyB.customProxies().getAll().size)
         } finally {

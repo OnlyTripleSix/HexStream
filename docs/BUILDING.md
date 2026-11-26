@@ -4,7 +4,7 @@
 
 Get the APK from [the official HexStream releases](https://github.com/OnlyTripleSix/HexStream/releases). Check its SHA-256 against the accompanying checksum file if you verify downloads. Android may ask you to allow installation from the browser/file manager you use.
 
-The current package is `com.github.andreyasadchy.xtra.prototype`. The inherited namespace and package are retained for compatibility with existing HexStream installations; the launcher name is HexStream. The current release is **1.0.0-beta.11**, version code **149**. See [playback and zoom](PLAYBACK.md) and [channel tools](CHANNEL-TOOLS.md) for instructions and limits. Do not uninstall an existing working installation merely to update it: a matching package/signature update preserves its app data.
+The current package is `com.github.andreyasadchy.xtra.prototype`. The inherited namespace and package are retained for compatibility with existing HexStream installations; the launcher name is HexStream. The published release is **1.0.0-beta.11**, version code **149**. This branch builds the local **1.0.0-beta.15** candidate, code **153**. See [playback and zoom](PLAYBACK.md) and [channel tools](CHANNEL-TOOLS.md) for instructions and limits. Do not uninstall an existing working installation merely to update it: a matching package/signature update preserves its app data.
 
 The published APK uses the existing HexStream signing certificate. Its SHA-256 certificate fingerprint is:
 
@@ -17,6 +17,7 @@ An APK signed with your own key cannot replace that installation while preservin
 ## Requirements
 
 - JDK **21**.
+- Python **3.11** for the bundled playback reader. Set `HEXSTREAM_BUILD_PYTHON` to its executable if needed. Chaquopy **17.2.0** resolves the pinned Streamlink **8.3.0**, lxml **5.3.0** and PyCryptodome **3.21.0** requirements during the build.
 - Android SDK platform **37**, build tools **37.0.0**, platform tools for device tests.
 - The included Gradle **9.8.2** wrapper; Android Gradle Plugin **9.5.0**.
 - Network access for Gradle dependencies on the first build.
@@ -91,3 +92,7 @@ Check the runner’s actual result, not only the shell exit status. The beta run
 Releases are built locally, checked, tagged and uploaded manually. This repository has no GitHub Actions workflow. Before publishing, run the unit/static/build checks, verify the signed package on a device, check neutral fresh-install filters, inspect the public file list and scan for credentials, personal exports and signing material.
 
 Keep the AGPL license, Xtra attribution and third-party notices with redistributed source. See [credits](../CREDITS.md) and the complete [license](../LICENSE).
+
+## Playback routing checks
+
+Run `python -m unittest discover -s tests -p "test_*.py" -v` for the account-free metadata-route, fallback and ad-output checks. They execute the production route/helper classes without contacting Twitch. The Android fixtures additionally verify the Java/Python status bridge and bundled metadata classifier in the isolated QA package. Neither test replaces a live ad-break playback check.
